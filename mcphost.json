@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "oci_compute": {
+      "type": "remote",
+      "transport": "sse",
+      "url": "http://localhost:8000/sse"
+    },
+    "oci_networking": {
+      "type": "remote",
+      "transport": "sse",
+      "url": "http://localhost:8001/sse",
+      "excludedTools": [
+        "terminate_instance"
+      ]
+    }
+  }
+}
