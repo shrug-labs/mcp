@@ -1,44 +1,35 @@
-*This repository acts as a template for all of Oracle’s GitHub repositories. It contains information about the guidelines for those repositories. All files and sections contained in this template are mandatory, and a GitHub app ensures alignment with these guidelines. To get started with a new repository, replace the italic paragraphs with the respective text for your project.*
+ORACLE AND ITS AFFILIATES DO NOT PROVIDE ANY WARRANTY WHATSOEVER, EXPRESS OR IMPLIED, FOR ANY SOFTWARE, MATERIAL OR CONTENT OF ANY KIND CONTAINED OR PRODUCED WITHIN THIS REPOSITORY, AND IN PARTICULAR SPECIFICALLY DISCLAIM ANY AND ALL IMPLIED WARRANTIES OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY, AND FITNESS FOR A PARTICULAR PURPOSE.  FURTHERMORE, ORACLE AND ITS AFFILIATES DO NOT REPRESENT THAT ANY CUSTOMARY SECURITY REVIEW HAS BEEN PERFORMED WITH RESPECT TO ANY SOFTWARE, MATERIAL OR CONTENT CONTAINED OR PRODUCED WITHIN THIS REPOSITORY.  IN ADDITION, AND WITHOUT LIMITING THE FOREGOING, THIRD PARTIES MAY HAVE POSTED SOFTWARE, MATERIAL OR CONTENT TO THIS REPOSITORY WITHOUT ANY REVIEW. USE AT YOUR OWN RISK. 
 
-# Project name
+# Oracle MCP Server repository
 
-*Describe your project's features, functionality and target audience*
+Repository containing MCP (Model Context Protocol) servers that provides a suite of tools for managing and interacting with Oracle products.
 
-## Installation
+## Prerequisites and installation
 
-*Provide detailed step-by-step installation instructions. You can name this section **How to Run** or **Getting Started** instead of **Installation** if that's more acceptable for your project*
+See content of each mcp servers in the src directory.
 
-## Documentation
-
-*Developer-oriented documentation can be published on GitHub, but all product documentation must be published on <https://docs.oracle.com>*
-
-## Examples
-
-*Describe any included examples or provide a link to a demo/tutorial*
-
-## Help
-
-*Inform users on where to get help or how to receive official support from Oracle (if applicable)*
 
 ## Contributing
 
-*If your project has specific contribution requirements, update the CONTRIBUTING.md file to ensure those requirements are clearly explained*
-
-This project welcomes contributions from the community. Before submitting a pull request, please [review our contribution guide](./CONTRIBUTING.md)
+This project welcomes contributions from the community. Before submitting a pull
+request, please [review our contribution guide](./CONTRIBUTING.md).
 
 ## Security
 
-Please consult the [security guide](./SECURITY.md) for our responsible security vulnerability disclosure process
+Please consult the [security guide](./SECURITY.md) for our responsible security
+vulnerability disclosure process.
 
 ## License
 
-*The correct copyright notice format for both documentation and software is*
-    "Copyright (c) [year,] year Oracle and/or its affiliates."
-*You must include the year the content was first released (on any platform) and the most recent year in which it was revised*
+<!-- The correct copyright notice format for both documentation and software
+    is "Copyright (c) [year,] year Oracle and/or its affiliates."
+    You must include the year the content was first released (on any platform) and
+    the most recent year in which it was revised. -->
 
-Copyright (c) 2023 Oracle and/or its affiliates.
-
-*Replace this statement if your project is not licensed under the UPL*
+Copyright (c) 2025 Oracle and/or its affiliates.
 
 Released under the Universal Permissive License v1.0 as shown at
 <https://oss.oracle.com/licenses/upl/>.
+
+## Third-Party APIs
+Developers choosing to distribute a binary implementation of this project are responsible for obtaining and providing all required licenses and copyright notices for the third-party code used in order to ensure compliance with their respective open source licenses.
