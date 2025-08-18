@@ -1,4 +1,3 @@
-import argparse
 from logging import Logger
 
 import oci
@@ -42,12 +41,7 @@ def delete_vcn(vcn_id: str):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Oracle Cloud Infrastructure Networking MCP server"
-    )
-    parser.add_argument("port", type=int, help="port number")
-
-    args = parser.parse_args()
     # MCP spec: OpenAPI exposed at /openapi.json, native MCP at /mcp/v1
     # mcp.run(transport="http", host="127.0.0.1", port=8000, path="/mcp")
-    mcp.run(transport="sse", host="127.0.0.1", port=args.port)
+    # mcp.run(transport="sse", host="127.0.0.1", port=args.port)
+    mcp.run()
