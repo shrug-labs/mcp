@@ -1,3 +1,4 @@
+import os
 from logging import Logger
 
 import oci
@@ -10,8 +11,17 @@ mcp = FastMCP("oci_compute")
 
 def get_compute_client():
     logger.info("entering get_compute_client")
-    config = oci.config.from_file()
-    return oci.core.ComputeClient(config)
+    config = oci.config.from_file(
+        profile_name=os.getenv("OCI_CONFIG_PROFILE", oci.config.DEFAULT_PROFILE)
+    )
+
+    private_key = oci.signer.load_private_key_from_file(config["key_file"])
+    token_file = config["security_token_file"]
+    token = None
+    with open(token_file, "r") as f:
+        token = f.read()
+    signer = oci.auth.signers.SecurityTokenSigner(token, private_key)
+    return oci.core.ComputeClient(config, signer=signer)
 
 
 @mcp.tool
