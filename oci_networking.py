@@ -48,6 +48,47 @@ def delete_vcn(vcn_id: str):
     return networking.delete_vcn(vcn_id).data
 
 
+@mcp.tool
+def create_vcn(compartment_id: str, cidr_block: str, display_name: str):
+    networking = get_networking_client()
+    vcn_details = oci.core.models.CreateVcnDetails(
+        compartment_id=compartment_id, cidr_block=cidr_block, display_name=display_name
+    )
+    return networking.create_vcn(vcn_details).data
+
+
+@mcp.tool
+def create_subnet(vcn_id: str, compartment_id: str, cidr_block: str, display_name: str):
+    networking = get_networking_client()
+    subnet_details = oci.core.models.CreateSubnetDetails(
+        compartment_id=compartment_id,
+        vcn_id=vcn_id,
+        cidr_block=cidr_block,
+        display_name=display_name,
+    )
+    return networking.create_subnet(subnet_details).data
+
+
+@mcp.tool
+def list_subnets(compartment_id: str, vcn_id: str):
+    networking = get_networking_client()
+    subnets = networking.list_subnets(compartment_id, vcn_id).data
+    return [
+        {
+            "subnet_id": subnet.id,
+            "display_name": subnet.display_name,
+            "lifecycle_state": subnet.lifecycle_state,
+        }
+        for subnet in subnets
+    ]
+
+
+@mcp.tool
+def get_subnet(subnet_id: str):
+    networking = get_networking_client()
+    return networking.get_subnet(subnet_id).data
+
+
 if __name__ == "__main__":
     # MCP spec: OpenAPI exposed at /openapi.json, native MCP at /mcp/v1
     # mcp.run(transport="http", host="127.0.0.1", port=8000, path="/mcp")
