@@ -16,6 +16,14 @@
         "oci_compute.py"
       ]
     },
+    "oci_compute_instance_agent": {
+      "type": "local",
+      "command": [
+        "uv",
+        "run",
+        "oci_compute_instance_agent.py"
+      ]
+    },
     "oci_networking": {
       "type": "local",
       "command": [
