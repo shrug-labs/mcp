@@ -34,6 +34,14 @@
         "run",
         "oci_resource_search.py"
       ]
+    },
+    "oci_registry": {
+      "type": "local",
+      "command": [
+        "uv",
+        "run",
+        "oci_registry.py"
+      ]
     }
   }
 }
