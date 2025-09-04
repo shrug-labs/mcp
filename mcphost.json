@@ -1,5 +1,13 @@
 {
   "mcpServers": {
+    "filesystem": {
+      "type": "builtin",
+      "name": "fs",
+      "options": {
+        "allowed_directories": ["/tmp", "/private/tmp"]
+      },
+      "allowedTools": ["read_file", "write_file", "list_directory"]
+    },
     "oci_compute": {
       "type": "local",
       "command": [
@@ -17,6 +25,14 @@
       ],
       "excludedTools": [
         "terminate_instance"
+      ]
+    },
+    "oci_resource_search": {
+      "type": "local",
+      "command": [
+        "uv",
+        "run",
+        "oci_resource_search.py"
       ]
     }
   }
