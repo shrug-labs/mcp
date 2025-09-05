@@ -58,6 +58,14 @@
         "run",
         "oci_metrics.py"
       ]
+    },
+    "oci_identity": {
+      "type": "local",
+      "command": [
+        "uv",
+        "run",
+        "oci_identity.py"
+      ]
     }
   }
 }
