@@ -66,6 +66,14 @@
         "run",
         "oci_identity.py"
       ]
+    },
+    "datetime": {
+      "type": "local",
+      "command": [
+        "uv",
+        "run",
+        "datetime_helper.py"
+      ]
     }
   }
 }
