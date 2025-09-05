@@ -41,7 +41,6 @@ def get_tenancy_info(tenancy_id: str):
         "id": tenancy.id,
         "name": tenancy.name,
         "description": tenancy.description,
-        "lifecycle_state": tenancy.lifecycle_state,
         "home_region_key": tenancy.home_region_key,
     }
 
@@ -58,7 +57,6 @@ def get_current_tenancy():
         "id": tenancy.id,
         "name": tenancy.name,
         "description": tenancy.description,
-        "lifecycle_state": tenancy.lifecycle_state,
         "home_region_key": tenancy.home_region_key,
     }
 
