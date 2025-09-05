@@ -50,6 +50,14 @@
         "run",
         "oci_registry.py"
       ]
+    },
+    "oci_metrics": {
+      "type": "local",
+      "command": [
+        "uv",
+        "run",
+        "oci_metrics.py"
+      ]
     }
   }
 }
