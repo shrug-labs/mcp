@@ -60,6 +60,29 @@ def get_current_tenancy():
         "home_region_key": tenancy.home_region_key,
     }
 
+@mcp.tool
+def create_auth_token(user_id: str):
+    identity = get_identity_client()
+    token = identity.create_auth_token(user_id=user_id).data
+    return {
+        "token": token.token,
+        "description": token.description,
+        "lifecycle_state": token.lifecycle_state,
+    }
+
+@mcp.tool
+def get_current_user():
+    identity = get_identity_client()
+    config = oci.config.from_file(
+        profile_name=os.getenv("OCI_CONFIG_PROFILE", oci.config.DEFAULT_PROFILE)
+    )
+    user_id = config["user"]
+    user = identity.get_user(user_id).data
+    return {
+        "id": user.id,
+        "name": user.name,
+        "description": user.description,
+    }
 
 if __name__ == "__main__":
     mcp.run()
