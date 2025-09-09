@@ -59,9 +59,9 @@ def search_resources(
 ):
     """Searches for resources by display name"""
     search_client = get_search_client()
-    structured_search = FreeTextSearchDetails(
+    structured_search = StructuredSearchDetails(
         type="Structured",
-        query=f"query all resources where compartmentId = '{compartment_id}' and displayName =~ '{display_name}'",
+        query=f"query all resources where compartmentId = '{compartment_id}' && displayName =~ '{display_name}'",
     )
     response = search_client.search_resources(structured_search).data
     return [
@@ -85,7 +85,7 @@ def search_resources_free_form(
 ):
     """Searches for the presence of the search string in all resource fields"""
     search_client = get_search_client()
-    freetext_search = StructuredSearchDetails(
+    freetext_search = FreeTextSearchDetails(
         type="FreeText",
         text=text,
     )

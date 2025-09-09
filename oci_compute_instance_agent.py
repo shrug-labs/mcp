@@ -5,9 +5,13 @@ from typing import Annotated
 import oci
 from fastmcp import FastMCP
 from oci.compute_instance_agent.models import (
-    CreateInstanceAgentCommandDetails, InstanceAgentCommandContent,
-    InstanceAgentCommandExecution, InstanceAgentCommandOutputViaTextDetails,
-    InstanceAgentCommandSourceViaTextDetails, InstanceAgentCommandTarget)
+    CreateInstanceAgentCommandDetails,
+    InstanceAgentCommandContent,
+    InstanceAgentCommandExecution,
+    InstanceAgentCommandOutputViaTextDetails,
+    InstanceAgentCommandSourceViaTextDetails,
+    InstanceAgentCommandTarget,
+)
 
 logger = Logger("oci_compute_mcp", level="INFO")
 
