@@ -74,6 +74,14 @@
         "run",
         "datetime_helper.py"
       ]
+    },
+    "oci_migration": {
+      "type": "local",
+      "command": [
+        "uv",
+        "run",
+        "oci_migration.py"
+      ]
     }
   }
 }
