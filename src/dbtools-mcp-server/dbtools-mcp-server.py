@@ -40,25 +40,42 @@ auth_signer = Signer(
 )
 tenancy_id = os.getenv("TENANCY_ID_OVERRIDE", config['tenancy'])
 
+def list_all_compartments_internal(only_one_page: bool , limit = 100  ):
+    """Internal function to get List all compartments in a tenancy"""
+    response = identity_client.list_compartments(
+            compartment_id=tenancy_id,
+            compartment_id_in_subtree=True,
+            access_level="ACCESSIBLE",
+            lifecycle_state="ACTIVE",
+            limit = limit
+       )
+    compartments = response.data
+    compartments.append(identity_client.get_compartment(compartment_id=tenancy_id).data)
+    if only_one_page : # limiting the number of items returned
+        return  compartments   
+    while response.has_next_page:
+        response = identity_client.list_compartments(
+            compartment_id=tenancy_id,
+            compartment_id_in_subtree=True,
+            access_level="ACCESSIBLE",
+            lifecycle_state="ACTIVE",
+            page=response.next_page,
+            limit = limit
+        )
+        compartments.extend(response.data)
+    
+    return compartments
+
 @mcp.tool()
 def list_all_compartments() -> str:
     """List all compartments in a tenancy with clear formatting"""
-    compartments = identity_client.list_compartments(tenancy_id).data
-    compartments.append(identity_client.get_compartment(compartment_id=tenancy_id).data)
-    return str(compartments)
+    return str(list_all_compartments_internal(True))
 
 def get_compartment_by_name(compartment_name: str):
     """Internal function to get compartment by name with caching"""
-    compartments = identity_client.list_compartments(
-        compartment_id=tenancy_id,
-        compartment_id_in_subtree=True,
-        access_level="ACCESSIBLE",
-        lifecycle_state="ACTIVE"
-    )
-    compartments.data.append(identity_client.get_compartment(compartment_id=tenancy_id).data)
-
+    compartments = list_all_compartments_internal(False)
     # Search for the compartment by name
-    for compartment in compartments.data:
+    for compartment in compartments:
         if compartment.name.lower() == compartment_name.lower():
             return compartment
 
