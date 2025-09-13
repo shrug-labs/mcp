@@ -4,9 +4,16 @@
       "type": "builtin",
       "name": "fs",
       "options": {
-        "allowed_directories": ["/tmp", "/private/tmp"]
+        "allowed_directories": [
+          "/tmp",
+          "/private/tmp"
+        ]
       },
-      "allowedTools": ["read_file", "write_file", "list_directory"]
+      "allowedTools": [
+        "read_file",
+        "write_file",
+        "list_directory"
+      ]
     },
     "oci_compute": {
       "type": "local",

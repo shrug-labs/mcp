@@ -3,11 +3,8 @@ from logging import Logger
 from typing import Annotated
 
 import oci
-from oci.resource_search.models import (
-    StructuredSearchDetails,
-    FreeTextSearchDetails,
-)
 from fastmcp import FastMCP
+from oci.resource_search.models import FreeTextSearchDetails, StructuredSearchDetails
 
 logger = Logger("oci_resource_search_mcp", level="INFO")
 
@@ -61,7 +58,10 @@ def search_resources(
     search_client = get_search_client()
     structured_search = StructuredSearchDetails(
         type="Structured",
-        query=f"query all resources where compartmentId = '{compartment_id}' && displayName =~ '{display_name}'",
+        query=(
+            f"query all resources where compartmentId = '{compartment_id}' "
+            f"&& displayName =~ '{display_name}'"
+        ),
     )
     response = search_client.search_resources(structured_search).data
     return [
@@ -109,7 +109,10 @@ def search_resources_by_type(compartment_id: str, resource_type: str):
     search_client = get_search_client()
     structured_search = StructuredSearchDetails(
         type="Structured",
-        query=f"query all {resource_type} resources where compartmentId = '{compartment_id}'",
+        query=(
+            f"query all {resource_type} "
+            f"resources where compartmentId = '{compartment_id}'"
+        ),
     )
     response = search_client.search_resources(structured_search).data
     return [

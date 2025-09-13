@@ -60,6 +60,7 @@ def get_current_tenancy():
         "home_region_key": tenancy.home_region_key,
     }
 
+
 @mcp.tool
 def create_auth_token(user_id: str):
     identity = get_identity_client()
@@ -69,6 +70,7 @@ def create_auth_token(user_id: str):
         "description": token.description,
         "lifecycle_state": token.lifecycle_state,
     }
+
 
 @mcp.tool
 def get_current_user():
@@ -83,6 +85,7 @@ def get_current_user():
         "name": user.name,
         "description": user.description,
     }
+
 
 if __name__ == "__main__":
     mcp.run()

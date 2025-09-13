@@ -1,7 +1,9 @@
 import os
 from logging import Logger
+
 import oci
 from fastmcp import FastMCP
+from oci.monitoring.models import SummarizeMetricsDataDetails
 
 logger = Logger("oci_metrics_mcp", level="INFO")
 
@@ -33,7 +35,7 @@ def get_compute_instance_cpu_utilization(
 
     datapoints = monitoring_client.summarize_metrics_data(
         compartment_id=compartment_id,
-        summarize_metrics_data_details=oci.monitoring.models.SummarizeMetricsDataDetails(
+        summarize_metrics_data_details=SummarizeMetricsDataDetails(
             namespace=namespace,
             query=query,
             start_time=start_time,
@@ -64,7 +66,7 @@ def get_compute_instance_memory_utilization(
 
     datapoints = monitoring_client.summarize_metrics_data(
         compartment_id=compartment_id,
-        summarize_metrics_data_details=oci.monitoring.models.SummarizeMetricsDataDetails(
+        summarize_metrics_data_details=SummarizeMetricsDataDetails(
             namespace=namespace,
             query=query,
             start_time=start_time,
