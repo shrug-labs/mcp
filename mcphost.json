@@ -17,24 +17,24 @@
     },
     "oci_compute": {
       "type": "local",
-      "command": [
-        "uv",
+      "command": "uv",
+      "args": [
         "run",
         "oci_compute.py"
       ]
     },
     "oci_compute_instance_agent": {
       "type": "local",
-      "command": [
-        "uv",
+      "command": "uv",
+      "args": [
         "run",
         "oci_compute_instance_agent.py"
       ]
     },
     "oci_networking": {
       "type": "local",
-      "command": [
-        "uv",
+      "command": "uv",
+      "args": [
         "run",
         "oci_networking.py"
       ],
@@ -44,48 +44,48 @@
     },
     "oci_resource_search": {
       "type": "local",
-      "command": [
-        "uv",
+      "command": "uv",
+      "args": [
         "run",
         "oci_resource_search.py"
       ]
     },
     "oci_registry": {
       "type": "local",
-      "command": [
-        "uv",
+      "command": "uv",
+      "args": [
         "run",
         "oci_registry.py"
       ]
     },
     "oci_metrics": {
       "type": "local",
-      "command": [
-        "uv",
+      "command": "uv",
+      "args": [
         "run",
         "oci_metrics.py"
       ]
     },
     "oci_identity": {
       "type": "local",
-      "command": [
-        "uv",
+      "command": "uv",
+      "args": [
         "run",
         "oci_identity.py"
       ]
     },
     "datetime": {
       "type": "local",
-      "command": [
-        "uv",
+      "command": "uv",
+      "args": [
         "run",
         "datetime_helper.py"
       ]
     },
     "oci_migration": {
       "type": "local",
-      "command": [
-        "uv",
+      "command": "uv",
+      "args": [
         "run",
         "oci_migration.py"
       ]
