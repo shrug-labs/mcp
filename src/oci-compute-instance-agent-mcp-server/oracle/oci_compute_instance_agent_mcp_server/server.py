@@ -13,9 +13,9 @@ from oci.compute_instance_agent.models import (
     InstanceAgentCommandTarget,
 )
 
-logger = Logger("oci_compute_mcp", level="INFO")
+logger = Logger(__name__, level="INFO")
 
-mcp = FastMCP("oci_compute")
+mcp = FastMCP(name="oracle.oci-compute-instance-agent-mcp-server")
 
 
 def get_compute_instance_agent_client():
@@ -101,5 +101,9 @@ def run_command(
         }
 
 
-if __name__ == "__main__":
+def main():
     mcp.run()
+
+
+if __name__ == "__main__":
+    main()

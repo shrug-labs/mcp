@@ -5,9 +5,9 @@ import oci
 from fastmcp import FastMCP
 from oci.monitoring.models import SummarizeMetricsDataDetails
 
-logger = Logger("oci_metrics_mcp", level="INFO")
+logger = Logger(__name__, level="INFO")
 
-mcp = FastMCP("oci_metrics")
+mcp = FastMCP(name="oracle.oci-monitoring-mcp-server")
 
 
 def get_monitoring_client():
@@ -87,5 +87,9 @@ def get_compute_instance_memory_utilization(
     return result
 
 
-if __name__ == "__main__":
+def main():
     mcp.run()
+
+
+if __name__ == "__main__":
+    main()

@@ -4,9 +4,9 @@ from logging import Logger
 import oci
 from fastmcp import FastMCP
 
-logger = Logger("oci_registry_mcp", level="INFO")
+logger = Logger(__name__, level="INFO")
 
-mcp = FastMCP("oci_registry")
+mcp = FastMCP(name="oracle.oci-registry-mcp-server")
 
 
 def get_ocir_client():
@@ -94,5 +94,9 @@ def delete_container_repository(repository_id: str):
         return {"error": str(e), "success": False}
 
 
-if __name__ == "__main__":
+def main():
     mcp.run()
+
+
+if __name__ == "__main__":
+    main()

@@ -3,7 +3,7 @@ import os
 import oci
 from fastmcp import FastMCP
 
-mcp = FastMCP("oci_identity")
+mcp = FastMCP(name="oracle.oci-identity-mcp-server")
 
 
 def get_identity_client():
@@ -87,5 +87,9 @@ def get_current_user():
     }
 
 
-if __name__ == "__main__":
+def main():
     mcp.run()
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,41 @@
+name: Matrix Build
+on:
+  push:
+    branches: 
+      - "main"
+  pull_request:
+    branches:
+      - "main"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    needs: get-directories
+    strategy:
+      matrix:
+        directory: ${{ fromJson(needs.get-directories.outputs.directories) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Build
+        working-directory: src/${{ matrix.directory }}
+        run: pipx run uv build
+
+  get-directories:
+    runs-on: ubuntu-latest
+    outputs:
+      directories: ${{ steps.get-directories.outputs.directories }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get directories
+        id: get-directories
+        run: |
+          directories=$(ls src | jq -R -s -c 'split("\n")[:-1]')
+          echo "directories=$directories" >> $GITHUB_OUTPUT

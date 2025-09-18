@@ -2,7 +2,7 @@ import datetime
 
 from fastmcp import FastMCP
 
-mcp = FastMCP("datetime_helper")
+mcp = FastMCP(name="oracle.datetime-helper-mcp-server")
 
 
 @mcp.tool
@@ -11,5 +11,9 @@ def get_current_datetime():
     return {"current_datetime": current_datetime.isoformat()}
 
 
-if __name__ == "__main__":
+def main():
     mcp.run()
+
+
+if __name__ == "__main__":
+    main()

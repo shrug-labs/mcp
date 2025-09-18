@@ -6,9 +6,9 @@ import oci
 from fastmcp import FastMCP
 from oci.resource_search.models import FreeTextSearchDetails, StructuredSearchDetails
 
-logger = Logger("oci_resource_search_mcp", level="INFO")
+logger = Logger(__name__, level="INFO")
 
-mcp = FastMCP("oci_resource_search")
+mcp = FastMCP(name="oracle.oci-resource-search-mcp-server")
 
 
 def get_search_client():
@@ -137,5 +137,9 @@ def list_resource_types():
     return map(lambda x: x.name, resource_types.data)
 
 
-if __name__ == "__main__":
+def main():
     mcp.run()
+
+
+if __name__ == "__main__":
+    main()

@@ -4,9 +4,9 @@ from logging import Logger
 import oci
 from fastmcp import FastMCP
 
-logger = Logger("oci_migration_mcp", level="INFO")
+logger = Logger(__name__, level="INFO")
 
-mcp = FastMCP("oci_migration")
+mcp = FastMCP(name="oracle.oci-migration-mcp-server")
 
 
 def get_migration_client():
@@ -68,8 +68,9 @@ def list_migrations(compartment_id: str, lifecycle_state: str = None):
     ]
 
 
-if __name__ == "__main__":
-    # MCP spec: OpenAPI exposed at /openapi.json, native MCP at /mcp/v1
-    # mcp.run(transport="http", host="127.0.0.1", port=8000, path="/mcp")
-    # mcp.run(transport="sse", host="127.0.0.1", port=args.port)
+def main():
     mcp.run()
+
+
+if __name__ == "__main__":
+    main()

@@ -4,9 +4,9 @@ from logging import Logger
 import oci
 from fastmcp import FastMCP
 
-logger = Logger("oci_compute_mcp", level="INFO")
+logger = Logger(__name__, level="INFO")
 
-mcp = FastMCP("oci_compute")
+mcp = FastMCP(name="oracle.oci-networking-mcp-server")
 
 
 def get_networking_client():
@@ -90,8 +90,9 @@ def get_subnet(subnet_id: str):
     return networking.get_subnet(subnet_id).data
 
 
-if __name__ == "__main__":
-    # MCP spec: OpenAPI exposed at /openapi.json, native MCP at /mcp/v1
-    # mcp.run(transport="http", host="127.0.0.1", port=8000, path="/mcp")
-    # mcp.run(transport="sse", host="127.0.0.1", port=args.port)
+def main():
     mcp.run()
+
+
+if __name__ == "__main__":
+    main()

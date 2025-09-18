@@ -15,79 +15,79 @@
         "list_directory"
       ]
     },
-    "oci_compute": {
+    "oracle-oci-compute-mcp-server": {
       "type": "local",
       "command": "uv",
       "args": [
         "run",
-        "oci_compute.py"
+        "oracle.oci-compute-mcp-server"
       ]
     },
-    "oci_compute_instance_agent": {
+    "oracle-oci-compute-instance-agent-mcp-server": {
       "type": "local",
       "command": "uv",
       "args": [
         "run",
-        "oci_compute_instance_agent.py"
+        "oracle.oci-compute-instance-agent-mcp-server"
       ]
     },
-    "oci_networking": {
+    "orac-oci-networking-mcp-server": {
       "type": "local",
       "command": "uv",
       "args": [
         "run",
-        "oci_networking.py"
+        "oracle.oci-networking-mcp-server"
       ],
       "excludedTools": [
         "terminate_instance"
       ]
     },
-    "oci_resource_search": {
+    "oracle-oci-resource-search-mcp-server": {
       "type": "local",
       "command": "uv",
       "args": [
         "run",
-        "oci_resource_search.py"
+        "oracle.oci-resource-search-mcp-server"
       ]
     },
-    "oci_registry": {
+    "oracle-oci-registry-mcp-server": {
       "type": "local",
       "command": "uv",
       "args": [
         "run",
-        "oci_registry.py"
+        "oracle.oci-registry-mcp-server"
       ]
     },
-    "oci_metrics": {
+    "oracle-oci-monitoring-mcp-server": {
       "type": "local",
       "command": "uv",
       "args": [
         "run",
-        "oci_metrics.py"
+        "oracle.oci-monitoring-mcp-server"
       ]
     },
-    "oci_identity": {
+    "oracle-oci-identity-mcp-server": {
       "type": "local",
       "command": "uv",
       "args": [
         "run",
-        "oci_identity.py"
+        "oracle.oci-identity-mcp-server"
       ]
     },
-    "datetime": {
+    "datetime-helper-mcp-server": {
       "type": "local",
       "command": "uv",
       "args": [
         "run",
-        "datetime_helper.py"
+        "oracle.datetime-helper-mcp-server"
       ]
     },
-    "oci_migration": {
+    "oracle-oci-migration-mcp-server": {
       "type": "local",
       "command": "uv",
       "args": [
         "run",
-        "oci_migration.py"
+        "oracle.oci-migration-mcp-server"
       ]
     }
   }

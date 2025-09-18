@@ -5,9 +5,9 @@ from typing import Annotated
 import oci
 from fastmcp import FastMCP
 
-logger = Logger("oci_compute_mcp", level="INFO")
+logger = Logger(__name__, level="INFO")
 
-mcp = FastMCP("oci_compute")
+mcp = FastMCP(name="oracle.oci-compute-mcp-server")
 
 
 def get_compute_client():
@@ -162,10 +162,9 @@ def update_instance_details(
         }
 
 
-if __name__ == "__main__":
-
-    # MCP spec: OpenAPI exposed at /openapi.json, native MCP at /mcp/v1
-    # mcp.run(transport="http", host="127.0.0.1", port=8000, path="/mcp")
-
-    # mcp.run(transport="sse", host="127.0.0.1", port=args.port)
+def main():
     mcp.run()
+
+
+if __name__ == "__main__":
+    main()
