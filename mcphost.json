@@ -89,6 +89,14 @@
         "run",
         "oracle.oci-migration-mcp-server"
       ]
+    },
+    "oracle-oci-network-load-balancer-mcp-server": {
+      "type": "local",
+      "command": "uv",
+      "args": [
+        "run",
+        "oracle.oci-network-load-balancer-mcp-server"
+      ]
     }
   }
 }
