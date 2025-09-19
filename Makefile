@@ -1,5 +1,7 @@
 SUBDIRS := $(wildcard src/*)
 
+.PHONY: test format
+
 build:
 	@for dir in $(SUBDIRS); do \
 		if [ -f $$dir/pyproject.toml ]; then \
@@ -15,4 +17,9 @@ install:
 			cd $$dir && uv pip install . && cd ../..; \
 		fi \
 	done
-build:
+
+test:
+	uv tool run --from 'tox==4.30.2' tox -e lint
+
+format:
+	uv tool run --from 'tox==4.30.2' tox -e format
