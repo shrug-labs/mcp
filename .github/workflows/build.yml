@@ -20,11 +20,29 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: '3.13'
+
+      - name: Install uv and setup Python
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.8.19"
+
+      - name: Sync
+        working-directory: src/${{ matrix.directory }}
+        run: uv sync --locked --all-extras --dev
+        
+      - name: Test
+        working-directory: src/${{ matrix.directory }}
+        run: uv run pytest
 
       - name: Build
         working-directory: src/${{ matrix.directory }}
-        run: pipx run uv build
+        run: uv build
+
+      - name: Test install
+        working-directory: src/${{ matrix.directory }}
+        run: uv pip install .
+          
 
   get-directories:
     runs-on: ubuntu-latest

@@ -24,7 +24,7 @@ def get_migration_client():
 
 
 @mcp.tool
-def get_migration(migration_id: str):
+def get_migration(migration_id: str) -> dict:
     """
     Get details for a specific Migration Project by OCID.
     Args:
@@ -37,7 +37,7 @@ def get_migration(migration_id: str):
 
 
 @mcp.tool
-def list_migrations(compartment_id: str, lifecycle_state: str = None):
+def list_migrations(compartment_id: str, lifecycle_state: str = None) -> list[dict]:
     """
     List Migration Projects for a compartment, optionally filtered by lifecycle state.
     Args:

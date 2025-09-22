@@ -20,6 +20,12 @@ install:
 
 test:
 	uv tool run --from 'tox==4.30.2' tox -e lint
+	@for dir in $(SUBDIRS); do \
+		if [ -f $$dir/pyproject.toml ]; then \
+			echo "Testing $$dir"; \
+			cd $$dir && uv run pytest && cd ../..; \
+		fi \
+	done
 
 format:
 	uv tool run --from 'tox==4.30.2' tox -e format

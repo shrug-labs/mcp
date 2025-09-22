@@ -27,7 +27,7 @@ def get_search_client():
 
 
 @mcp.tool
-def list_all_resources(compartment_id: str):
+def list_all_resources(compartment_id: str) -> list[dict]:
     """Returns all resources"""
     search_client = get_search_client()
     structured_search = StructuredSearchDetails(
@@ -53,7 +53,7 @@ def list_all_resources(compartment_id: str):
 def search_resources(
     compartment_id: str,
     display_name: Annotated[str, "Full display name or display name substring"],
-):
+) -> list[dict]:
     """Searches for resources by display name"""
     search_client = get_search_client()
     structured_search = StructuredSearchDetails(
@@ -82,7 +82,7 @@ def search_resources(
 def search_resources_free_form(
     compartment_id: str,
     text: Annotated[str, "Free-form search string"],
-):
+) -> list[dict]:
     """Searches for the presence of the search string in all resource fields"""
     search_client = get_search_client()
     freetext_search = FreeTextSearchDetails(
@@ -130,11 +130,11 @@ def search_resources_by_type(compartment_id: str, resource_type: str):
 
 
 @mcp.tool
-def list_resource_types():
+def list_resource_types() -> list[str]:
     """Returns a list of all supported OCI resource types"""
     search_client = get_search_client()
     resource_types = search_client.list_resource_types()
-    return map(lambda x: x.name, resource_types.data)
+    return list(map(lambda x: x.name, resource_types.data))
 
 
 def main():

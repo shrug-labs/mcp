@@ -101,6 +101,28 @@ def run_command(
         }
 
 
+@mcp.tool
+def list_instance_agent_commands(compartment_id: str, instance_id: str) -> list[dict]:
+    """Get instance agent commands"""
+    client = get_compute_instance_agent_client()
+    commands = client.list_instance_agent_commands(
+        compartment_id=compartment_id,
+        instance_id=instance_id,
+    ).data
+
+    return [
+        {
+            "compartment_id": command.compartment_id,
+            "display_name": command.display_name,
+            "instance_agent_command_id": command.instance_agent_command_id,
+            "is_canceled": command.is_canceled,
+            "time_created": command.time_created,
+            "time_updated": command.time_updated,
+        }
+        for command in commands
+    ]
+
+
 def main():
     mcp.run()
 

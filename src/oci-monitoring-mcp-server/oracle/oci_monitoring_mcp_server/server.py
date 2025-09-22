@@ -28,7 +28,7 @@ def get_monitoring_client():
 @mcp.tool
 def get_compute_instance_cpu_utilization(
     compartment_id: str, instance_id: str, start_time: str, end_time: str
-):
+) -> list[dict]:
     monitoring_client = get_monitoring_client()
     namespace = "oci_computeagent"
     query = f'CpuUtilization[1m]{{resourceId=~"{instance_id}"}}.mean()'
@@ -59,7 +59,7 @@ def get_compute_instance_cpu_utilization(
 @mcp.tool
 def get_compute_instance_memory_utilization(
     compartment_id: str, instance_id: str, start_time: str, end_time: str
-):
+) -> list[dict]:
     monitoring_client = get_monitoring_client()
     namespace = "oci_computeagent"
     query = f'MemoryUtilization[1m]{{resourceId=~"{instance_id}"}}.mean()'

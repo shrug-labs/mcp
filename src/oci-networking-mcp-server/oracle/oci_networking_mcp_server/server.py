@@ -23,7 +23,7 @@ def get_networking_client():
 
 
 @mcp.tool
-def list_vcns(compartment_id: str):
+def list_vcns(compartment_id: str) -> list[dict]:
     networking = get_networking_client()
     vcns = networking.list_vcns(compartment_id).data
     return [
@@ -70,7 +70,7 @@ def create_subnet(vcn_id: str, compartment_id: str, cidr_block: str, display_nam
 
 
 @mcp.tool
-def list_subnets(compartment_id: str, vcn_id: str = None):
+def list_subnets(compartment_id: str, vcn_id: str = None) -> list[dict]:
     networking = get_networking_client()
     subnets = networking.list_subnets(compartment_id, vcn_id=vcn_id).data
     return [

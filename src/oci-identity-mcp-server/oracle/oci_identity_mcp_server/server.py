@@ -19,7 +19,7 @@ def get_identity_client():
 
 
 @mcp.tool
-def list_compartments(tenancy_id: str):
+def list_compartments(tenancy_id: str) -> list[dict]:
     identity = get_identity_client()
     compartments = identity.list_compartments(tenancy_id).data
     return [
@@ -34,7 +34,7 @@ def list_compartments(tenancy_id: str):
 
 
 @mcp.tool
-def get_tenancy_info(tenancy_id: str):
+def get_tenancy_info(tenancy_id: str) -> dict:
     identity = get_identity_client()
     tenancy = identity.get_tenancy(tenancy_id).data
     return {
@@ -46,7 +46,7 @@ def get_tenancy_info(tenancy_id: str):
 
 
 @mcp.tool
-def get_current_tenancy():
+def get_current_tenancy() -> dict:
     config = oci.config.from_file(
         profile_name=os.getenv("OCI_CONFIG_PROFILE", oci.config.DEFAULT_PROFILE)
     )
@@ -62,7 +62,7 @@ def get_current_tenancy():
 
 
 @mcp.tool
-def create_auth_token(user_id: str):
+def create_auth_token(user_id: str) -> dict:
     identity = get_identity_client()
     token = identity.create_auth_token(user_id=user_id).data
     return {
@@ -73,7 +73,7 @@ def create_auth_token(user_id: str):
 
 
 @mcp.tool
-def get_current_user():
+def get_current_user() -> dict:
     identity = get_identity_client()
     config = oci.config.from_file(
         profile_name=os.getenv("OCI_CONFIG_PROFILE", oci.config.DEFAULT_PROFILE)

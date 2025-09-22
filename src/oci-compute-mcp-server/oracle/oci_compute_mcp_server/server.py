@@ -26,7 +26,7 @@ def get_compute_client():
 
 
 @mcp.tool
-def list_instances(compartment_id: str):
+def list_instances(compartment_id: str) -> list[dict]:
     compute = get_compute_client()
     instances = compute.list_instances(compartment_id).data
     return [
@@ -48,7 +48,7 @@ def launch_instance(
     image_id: str,
     subnet_id: str,
     shape: Annotated[str, "Instance shape"] = "VM.Standard.A1.Flex",
-):
+) -> dict:
     compute = get_compute_client()
     launch_details = oci.core.models.LaunchInstanceDetails(
         compartment_id=compartment_id,
@@ -89,7 +89,7 @@ def get_image(image_id: str):
 
 
 @mcp.tool
-def list_images(compartment_id: str, operating_system: str = None):
+def list_images(compartment_id: str, operating_system: str = None) -> list[dict]:
     """List images, optionally filtered by operating system"""
     compute = get_compute_client()
     images = compute.list_images(compartment_id).data
@@ -109,7 +109,7 @@ def list_images(compartment_id: str, operating_system: str = None):
 
 
 @mcp.tool
-def instance_action(instance_id: str, action: str):
+def instance_action(instance_id: str, action: str) -> dict:
     compute = get_compute_client()
     response = compute.instance_action(instance_id, action)
     return {"status": action, "opc_request_id": response.headers.get("opc-request-id")}
@@ -122,7 +122,7 @@ def update_instance_details(
     memory_in_gbs: Annotated[
         int, "Amount of memory in gigabytes (GB) allocated to the instance"
     ],
-):
+) -> dict:
     """Update instance details; this may restart the instance so warn the user"""
     compute_client = get_compute_client()
 
@@ -162,7 +162,7 @@ def update_instance_details(
         }
 
 
-def main():
+def main() -> None:
     mcp.run()
 
 
