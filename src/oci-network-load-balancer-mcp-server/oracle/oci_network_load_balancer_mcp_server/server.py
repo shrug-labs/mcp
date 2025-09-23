@@ -6,11 +6,11 @@ from fastmcp import FastMCP
 
 logger = Logger(__name__, level="INFO")
 
-mcp = FastMCP(name="oracle.oci-compute-mcp-server")
+mcp = FastMCP(name="oracle.oci-network-load-balancer-mcp-server")
 
 
-def get_network_load_balancer_client():
-    logger.info("entering get_network_load_balancer_client")
+def get_nlb_client():
+    logger.info("entering get_nlb_client")
     config = oci.config.from_file(
         profile_name=os.getenv("OCI_CONFIG_PROFILE", oci.config.DEFAULT_PROFILE)
     )
@@ -25,9 +25,9 @@ def get_network_load_balancer_client():
 
 
 @mcp.tool
-def list_network_load_balancers(compartment_id: str):
+def list_network_load_balancers(compartment_id: str) -> list[dict]:
     """Lists the network load balancers from the given compartment"""
-    nlb_client = get_network_load_balancer_client()
+    nlb_client = get_nlb_client()
     nlbs = nlb_client.list_network_load_balancers(compartment_id).data.items
     return [
         {
@@ -46,14 +46,14 @@ def list_network_load_balancers(compartment_id: str):
 @mcp.tool
 def get_network_load_balancer(network_load_balancer_id: str):
     """Gets the network load balancer with the given ocid"""
-    nlb_client = get_network_load_balancer_client()
+    nlb_client = get_nlb_client()
     return nlb_client.get_network_load_balancer(network_load_balancer_id).data
 
 
 @mcp.tool(name="list_network_load_balancer_listeners")
-def list_listeners(network_load_balancer_id: str):
+def list_listeners(network_load_balancer_id: str) -> list[dict]:
     """Lists the listeners from the given network load balancer"""
-    nlb_client = get_network_load_balancer_client()
+    nlb_client = get_nlb_client()
     listeners = nlb_client.list_listeners(network_load_balancer_id).data.items
     return [
         {
@@ -74,14 +74,14 @@ def get_listener(
 ):
     """Gets the listener with the given listener name
     from the given network load balancer"""
-    nlb_client = get_network_load_balancer_client()
+    nlb_client = get_nlb_client()
     return nlb_client.get_listener(network_load_balancer_id, listener_name).data
 
 
 @mcp.tool(name="list_network_load_balancer_backend_sets")
-def list_backend_sets(network_load_balancer_id: str):
+def list_backend_sets(network_load_balancer_id: str) -> list[dict]:
     """Lists the backend sets from the given network load balancer"""
-    nlb_client = get_network_load_balancer_client()
+    nlb_client = get_nlb_client()
     backend_sets = nlb_client.list_backend_sets(network_load_balancer_id).data.items
     return [
         {
@@ -102,7 +102,7 @@ def get_backend_set(
 ):
     """Gets the backend set with the given backend set name
     from the given network load balancer"""
-    nlb_client = get_network_load_balancer_client()
+    nlb_client = get_nlb_client()
     return nlb_client.get_backend_set(network_load_balancer_id, backend_set_name).data
 
 
@@ -110,9 +110,9 @@ def get_backend_set(
 def list_backends(
     network_load_balancer_id: str,
     backend_set_name: str,
-):
+) -> list[dict]:
     """Lists the backends from the given backend set and network load balancer"""
-    nlb_client = get_network_load_balancer_client()
+    nlb_client = get_nlb_client()
     backends = nlb_client.list_backends(
         network_load_balancer_id, backend_set_name
     ).data.items
@@ -138,7 +138,7 @@ def get_backend(
 ):
     """Gets the backend with the given backend name
     from the given backend set and network load balancer"""
-    nlb_client = get_network_load_balancer_client()
+    nlb_client = get_nlb_client()
     return nlb_client.get_backend(
         network_load_balancer_id, backend_set_name, backend_name
     ).data
