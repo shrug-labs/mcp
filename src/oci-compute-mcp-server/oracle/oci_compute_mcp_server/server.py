@@ -1,43 +1,47 @@
-import os
 from logging import Logger
 from typing import Annotated
 
-import oci
 from fastmcp import FastMCP
+from oracle.oci_compute_mcp_server.models import (
+    Image,
+    Instance,
+)
+from oracle.oci_compute_mcp_server.utils import (
+    create_instance,
+    discover_image,
+    discover_images,
+    discover_instance,
+    discover_instances,
+    perform_instance_action,
+)
 
 logger = Logger(__name__, level="INFO")
 
 mcp = FastMCP(name="oracle.oci-compute-mcp-server")
 
 
-def get_compute_client():
-    logger.info("entering get_compute_client")
-    config = oci.config.from_file(
-        profile_name=os.getenv("OCI_CONFIG_PROFILE", oci.config.DEFAULT_PROFILE)
-    )
+@mcp.tool
+async def list_instances(compartment_id: str) -> list[Instance]:
+    """List Instances in a given compartment"""
+    try:
+        logger.info("Discovering Instances")
+        return discover_instances(compartment_id)
 
-    private_key = oci.signer.load_private_key_from_file(config["key_file"])
-    token_file = config["security_token_file"]
-    token = None
-    with open(token_file, "r") as f:
-        token = f.read()
-    signer = oci.auth.signers.SecurityTokenSigner(token, private_key)
-    return oci.core.ComputeClient(config, signer=signer)
+    except Exception as e:
+        logger.error(f"Error in list_instances tool: {str(e)}")
+        raise
 
 
 @mcp.tool
-def list_instances(compartment_id: str) -> list[dict]:
-    compute = get_compute_client()
-    instances = compute.list_instances(compartment_id).data
-    return [
-        {
-            "instance_id": inst.id,
-            "display_name": inst.display_name,
-            "lifecycle_state": inst.lifecycle_state,
-            "shape": inst.shape,
-        }
-        for inst in instances
-    ]
+async def get_instance(instance_id: str) -> Instance:
+    """Get Instance with a given instance OCID"""
+    try:
+        logger.info("Discovering Instance")
+        return discover_instance(instance_id)
+
+    except Exception as e:
+        logger.error(f"Error in get_instance tool: {str(e)}")
+        raise
 
 
 @mcp.tool
@@ -45,31 +49,25 @@ def launch_instance(
     compartment_id: str,
     display_name: str,
     availability_domain: str,
-    image_id: str,
     subnet_id: str,
+    image_id: str,
     shape: Annotated[str, "Instance shape"] = "VM.Standard.A1.Flex",
-) -> dict:
-    compute = get_compute_client()
-    launch_details = oci.core.models.LaunchInstanceDetails(
-        compartment_id=compartment_id,
-        display_name=display_name,
-        availability_domain=availability_domain,
-        shape=shape,
-        image_id=image_id,
-        subnet_id=subnet_id,
-    )
-    instance = compute.launch_instance(launch_details).data
-    return {
-        "id": instance.id,
-        "display_name": instance.display_name,
-        "lifecycle_state": instance.lifecycle_state,
-    }
+) -> Instance:
+    """Create a new Instance"""
+    try:
+        logger.info("Creating Instance")
+        return create_instance(
+            compartment_id,
+            display_name,
+            availability_domain,
+            image_id,
+            subnet_id,
+            shape,
+        )
 
-
-@mcp.tool
-def get_instance(instance_id: str):
-    compute = get_compute_client()
-    return compute.get_instance(instance_id).data
+    except Exception as e:
+        logger.error(f"Error in launch_instance tool: {str(e)}")
+        raise
 
 
 # @mcp.tool
@@ -83,83 +81,95 @@ def get_instance(instance_id: str):
 
 
 @mcp.tool
-def get_image(image_id: str):
-    compute = get_compute_client()
-    return compute.get_image(image_id).data
-
-
-@mcp.tool
-def list_images(compartment_id: str, operating_system: str = None) -> list[dict]:
-    """List images, optionally filtered by operating system"""
-    compute = get_compute_client()
-    images = compute.list_images(compartment_id).data
-
-    if operating_system:
-        images = [img for img in images if img.operating_system == operating_system]
-
-    return [
-        {
-            "id": img.id,
-            "display_name": img.display_name,
-            "operating_system": img.operating_system,
-            "operating_system_version": img.operating_system_version,
-        }
-        for img in images
-    ]
-
-
-@mcp.tool
-def instance_action(instance_id: str, action: str) -> dict:
-    compute = get_compute_client()
-    response = compute.instance_action(instance_id, action)
-    return {"status": action, "opc_request_id": response.headers.get("opc-request-id")}
-
-
-@mcp.tool
-def update_instance_details(
-    instance_id: str,
-    ocpus: Annotated[int, "Number of CPUs allocated to the instance"],
-    memory_in_gbs: Annotated[
-        int, "Amount of memory in gigabytes (GB) allocated to the instance"
-    ],
-) -> dict:
-    """Update instance details; this may restart the instance so warn the user"""
-    compute_client = get_compute_client()
-
-    shape_config_details = oci.core.models.UpdateInstanceShapeConfigDetails(
-        ocpus=ocpus, memory_in_gbs=memory_in_gbs
-    )
-
-    update_instance_details = oci.core.models.UpdateInstanceDetails(
-        shape_config=shape_config_details
-    )
-
+def list_images(compartment_id: str, operating_system: str = None) -> list[Image]:
+    """List images in a given compartment, optionally filtered by operating system"""
     try:
-        compute_client.update_instance(
-            instance_id=instance_id, update_instance_details=update_instance_details
+        logger.info("Discovering Images")
+        return discover_images(
+            compartment_id=compartment_id, operating_system=operating_system
         )
 
-        get_response = compute_client.get_instance(instance_id)
+    except Exception as e:
+        logger.error(f"Error in list_images tool: {str(e)}")
+        raise
 
-        final_response = oci.wait_until(
-            client=compute_client,
-            response=get_response,
-            evaluate_response=lambda x: x.data.shape_config.ocpus == ocpus
-            and x.data.shape_config.memory_in_gbs == memory_in_gbs,
-            max_interval_seconds=5,
-            max_wait_seconds=240,
-        )
 
-        return {
-            "instance_id": instance_id,
-            "ocpus": final_response.data.shape_config.ocpus,
-            "memory_in_gbs": final_response.data.shape_config.memory_in_gbs,
-        }
-    except oci.exceptions.ServiceError as e:
-        return {
-            "error_code": e.code,
-            "message": e.message,
-        }
+@mcp.tool
+def get_image(image_id: str) -> Image:
+    """Get Image with a given image OCID"""
+    try:
+        logger.info("Discovering Image")
+        return discover_image(image_id)
+
+    except Exception as e:
+        logger.error(f"Error in get_image tool: {str(e)}")
+        raise
+
+
+@mcp.tool
+def instance_action(
+    instance_id: str,
+    action: Annotated[
+        str,
+        "The action to be performed. The action can only be one of these values: START, STOP, RESET, SOFTSTOP, SOFTRESET, SENDDIAGNOSTICINTERRUPT, DIAGNOSTICREBOOT, REBOOTMIGRATE",  # noqa
+    ],
+) -> Instance:
+    """Perform the desired action on a given instance"""
+    try:
+        logger.info("Performing instance action")
+        return perform_instance_action(instance_id, action)
+
+    except Exception as e:
+        logger.error(f"Error in instance_action tool: {str(e)}")
+        raise
+
+
+# TODO: commenting this out until create instance gets fixed as well
+# @mcp.tool
+# def update_instance_details(
+#     instance_id: str,
+#     ocpus: Annotated[int, "Number of CPUs allocated to the instance"],
+#     memory_in_gbs: Annotated[
+#         int, "Amount of memory in gigabytes (GB) allocated to the instance"
+#     ],
+# ) -> dict:
+#     """Update instance details; this may restart the instance so warn the user"""
+#     compute_client = get_compute_client()
+
+#     shape_config_details = oci.core.models.UpdateInstanceShapeConfigDetails(
+#         ocpus=ocpus, memory_in_gbs=memory_in_gbs
+#     )
+
+#     update_instance_details = oci.core.models.UpdateInstanceDetails(
+#         shape_config=shape_config_details
+#     )
+
+#     try:
+#         compute_client.update_instance(
+#             instance_id=instance_id, update_instance_details=update_instance_details
+#         )
+
+#         get_response = compute_client.get_instance(instance_id)
+
+#         final_response = oci.wait_until(
+#             client=compute_client,
+#             response=get_response,
+#             evaluate_response=lambda x: x.data.shape_config.ocpus == ocpus
+#             and x.data.shape_config.memory_in_gbs == memory_in_gbs,
+#             max_interval_seconds=5,
+#             max_wait_seconds=240,
+#         )
+
+#         return {
+#             "instance_id": instance_id,
+#             "ocpus": final_response.data.shape_config.ocpus,
+#             "memory_in_gbs": final_response.data.shape_config.memory_in_gbs,
+#         }
+#     except oci.exceptions.ServiceError as e:
+#         return {
+#             "error_code": e.code,
+#             "message": e.message,
+#         }
 
 
 def main() -> None:
