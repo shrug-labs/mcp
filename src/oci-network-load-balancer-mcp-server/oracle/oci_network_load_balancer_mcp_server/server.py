@@ -24,9 +24,17 @@ def get_nlb_client():
     return oci.network_load_balancer.NetworkLoadBalancerClient(config, signer=signer)
 
 
-@mcp.tool
+@mcp.tool(name="list_network_load_balancers", description="List network load balancers")
 def list_network_load_balancers(compartment_id: str) -> list[dict]:
-    """Lists the network load balancers from the given compartment"""
+    """
+    Lists the network load balancers from the given compartment
+
+    Args:
+        compartment_id: Compartment OCID
+
+    Returns:
+        List of network load balancers
+    """
     nlb_client = get_nlb_client()
     nlbs = nlb_client.list_network_load_balancers(compartment_id).data.items
     return [
@@ -43,9 +51,19 @@ def list_network_load_balancers(compartment_id: str) -> list[dict]:
     ]
 
 
-@mcp.tool
+@mcp.tool(
+    name="get_network_load_balancer", description="Get network load balancer details"
+)
 def get_network_load_balancer(network_load_balancer_id: str):
-    """Gets the network load balancer with the given ocid"""
+    """
+    Gets the network load balancer with the given ocid
+
+    Args:
+        network_load_balancer_id: Network load balancer OCID
+
+    Returns:
+        A network load balancer
+    """
     nlb_client = get_nlb_client()
     return nlb_client.get_network_load_balancer(network_load_balancer_id).data
 
