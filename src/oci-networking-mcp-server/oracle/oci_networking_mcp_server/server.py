@@ -1,5 +1,6 @@
 import os
 from logging import Logger
+from typing import Annotated
 
 import oci
 from fastmcp import FastMCP
@@ -90,19 +91,16 @@ def get_subnet(subnet_id: str):
     return networking.get_subnet(subnet_id).data
 
 
-@mcp.tool(name="list_security_lists", description="List security lists")
-def list_security_lists(compartment_id: str, vcn_id: str = None) -> list[dict]:
-    """
-    Lists the security lists in the specified VCN and compartment.
-    If the VCN ID is not provided, then the list includes the security
-    lists from all VCNs in the specified compartment.
-
-    Args:
-        compartment_id: Compartment OCID
-        vcn_id: VCN ID
-    Returns:
-        A list of security lists
-    """
+@mcp.tool(
+    name="list_security_lists",
+    description="Lists the security lists in the specified VCN and compartment. "
+    "If the VCN ID is not provided, then the list includes the security lists from all "
+    "VCNs in the specified compartment.",
+)
+def list_security_lists(
+    compartment_id: Annotated[str, "Compartment ocid"],
+    vcn_id: Annotated[str, "VCN ocid"] = None,
+) -> list[dict]:
     networking = get_networking_client()
     security_lists = networking.list_security_lists(compartment_id, vcn_id=vcn_id).data
     return [
@@ -116,43 +114,28 @@ def list_security_lists(compartment_id: str, vcn_id: str = None) -> list[dict]:
     ]
 
 
-@mcp.tool(name="get_security_list", description="Gets a security list")
-def get_security_list(security_list_id: str):
-    """
-    Gets the specified security list's information.
-
-    Args:
-        security_list_id: security list ID
-    Returns:
-        A security list
-    """
+@mcp.tool(name="get_security_list", description="Gets the security list's information.")
+def get_security_list(security_list_id: Annotated[str, "security list id"]):
     networking = get_networking_client()
     return networking.get_security_list(security_list_id).data
 
 
 @mcp.tool(
     name="list_network_security_group",
-    description="Gets a list of network security groups",
+    description="Lists either the network security groups in the specified compartment,"
+    "or those associated with the specified VLAN. You must specify either a vlanId or"
+    "a compartmentId, but not both. If you specify a vlanId, all other parameters are "
+    "ignored.",
 )
 def list_network_security_groups(
-    compartment_id: str, vlan_id: str = None, vcn_id: str = None
+    compartment_id: Annotated[str, "compartment ocid"],
+    vlan_id: Annotated[str, "vlan ocid"] = None,
+    vcn_id: Annotated[str, "vcn ocid"] = None,
 ) -> list[dict]:
-    """
-    Lists either the network security groups in the specified compartment,
-    or those associated with the specified VLAN.
-    You must specify either a vlanId or a compartmentId, but not both.
-    If you specify a vlanId, all other parameters are ignored.
-
-    Args:
-        compartment_id: The ocid of the compartment
-        vcn_id: The ocid of the VCN
-        vlan_id: The ocid of the VLAN
-    Returns:
-        A list of NSGs associated with the specified VCN or VLAN
-    """
     networking = get_networking_client()
-    args = dict(compartment_id=compartment_id, vlan_id=vlan_id, vcn_id=vcn_id)
-    nsg_list = networking.list_network_security_groups(**args).data
+    nsg_list = networking.list_network_security_groups(
+        compartment_id=compartment_id, vlan_id=vlan_id, vcn_id=vcn_id
+    ).data
     return [
         {
             "nsg_id": nsg.id,
@@ -164,17 +147,10 @@ def list_network_security_groups(
 
 
 @mcp.tool(
-    name="get_network_security_group", description="Gets a network security group"
+    name="get_network_security_group",
+    description="Gets the specified network security group's information.",
 )
-def get_network_security_group(network_security_group_id: str):
-    """
-    Gets the specified network security group's information.
-
-    Args:
-        network_security_group_id: NSG ID
-    Returns:
-        A network security group
-    """
+def get_network_security_group(network_security_group_id: Annotated[str, "nsg id"]):
     networking = get_networking_client()
     return networking.get_network_security_group(network_security_group_id).data
 
