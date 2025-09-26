@@ -3,12 +3,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from fastmcp import Client
-from oracle.oci_cli_mcp_server.server import mcp
+from oracle.oci_api_mcp_server.server import mcp
 
 
 class TestOCITools:
     @pytest.mark.asyncio
-    @patch("oracle.oci_cli_mcp_server.server.subprocess.run")
+    @patch("oracle.oci_api_mcp_server.server.subprocess.run")
     async def test_get_oci_command_help_success(self, mock_run):
         mock_result = MagicMock()
         mock_result.stdout = "Help output"
@@ -31,7 +31,7 @@ class TestOCITools:
             )
 
     @pytest.mark.asyncio
-    @patch("oracle.oci_cli_mcp_server.server.subprocess.run")
+    @patch("oracle.oci_api_mcp_server.server.subprocess.run")
     async def test_get_oci_command_help_failure(self, mock_run):
         mock_result = MagicMock()
         mock_result.stdout = "Some output"
@@ -53,8 +53,8 @@ class TestOCITools:
             assert "Error: Some error" in result
 
     @pytest.mark.asyncio
-    @patch("oracle.oci_cli_mcp_server.server.subprocess.run")
-    @patch("oracle.oci_cli_mcp_server.server.json.loads")
+    @patch("oracle.oci_api_mcp_server.server.subprocess.run")
+    @patch("oracle.oci_api_mcp_server.server.json.loads")
     async def test_run_oci_command_success(self, mock_json_loads, mock_run):
         mock_result = MagicMock()
         mock_result.stdout = '{"key": "value"}'
@@ -73,7 +73,7 @@ class TestOCITools:
             mock_json_loads.assert_called_once_with('{"key": "value"}')
 
     @pytest.mark.asyncio
-    @patch("oracle.oci_cli_mcp_server.server.subprocess.run")
+    @patch("oracle.oci_api_mcp_server.server.subprocess.run")
     async def test_run_oci_command_failure(self, mock_run):
         mock_result = MagicMock()
         mock_result.stdout = "Some output"
@@ -98,7 +98,7 @@ class TestOCITools:
             }
 
     @pytest.mark.asyncio
-    @patch("oracle.oci_cli_mcp_server.server.subprocess.run")
+    @patch("oracle.oci_api_mcp_server.server.subprocess.run")
     async def test_get_oci_commands_success(self, mock_run):
         mock_result = MagicMock()
         mock_result.stdout = "OCI commands output"
@@ -117,7 +117,7 @@ class TestOCITools:
             )
 
     @pytest.mark.asyncio
-    @patch("oracle.oci_cli_mcp_server.server.subprocess.run")
+    @patch("oracle.oci_api_mcp_server.server.subprocess.run")
     async def test_get_oci_commands_failure(self, mock_run):
         mock_result = MagicMock()
         mock_result.stderr = "Some error"

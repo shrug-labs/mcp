@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.scripts]
-"oracle.oci-api-mcp-server" = "oracle.oci_cli_mcp_server.server:main"
+"oracle.oci-api-mcp-server" = "oracle.oci_api_mcp_server.server:main"
 
 [build-system]
 requires = ["hatchling"]
