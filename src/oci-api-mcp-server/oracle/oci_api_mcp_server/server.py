@@ -21,6 +21,7 @@ def get_oci_commands() -> str:
             capture_output=True,
             text=True,
             check=True,
+            shell=False,
         )
         return result.stdout
     except subprocess.CalledProcessError as e:
@@ -53,6 +54,7 @@ def get_oci_command_help(command: str) -> str:
             capture_output=True,
             text=True,
             check=True,
+            shell=False,
         )
         return result.stdout
     except subprocess.CalledProcessError as e:
@@ -78,17 +80,14 @@ def run_oci_command(
     # Run OCI CLI command using subprocess
     try:
         result = subprocess.run(
-            [
-                "oci",
-                "--profile",
-                profile,
-                "--auth",
-                "security_token",
-            ]
+            ["oci", "--profile"]
+            + [profile]
+            + ["--auth", "security_token"]
             + command.split(),
             capture_output=True,
             text=True,
             check=True,
+            shell=False,
         )
         return json.loads(result.stdout)
     except subprocess.CalledProcessError as e:

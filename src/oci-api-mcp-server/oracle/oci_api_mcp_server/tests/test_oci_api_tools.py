@@ -28,6 +28,7 @@ class TestOCITools:
                 capture_output=True,
                 text=True,
                 check=True,
+                shell=False,
             )
 
     @pytest.mark.asyncio
@@ -114,6 +115,7 @@ class TestOCITools:
                 capture_output=True,
                 text=True,
                 check=True,
+                shell=False,
             )
 
     @pytest.mark.asyncio

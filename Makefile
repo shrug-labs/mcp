@@ -10,11 +10,19 @@ build:
 		fi \
 	done
 
-install:
+sync:
 	@for dir in $(SUBDIRS); do \
 		if [ -f $$dir/pyproject.toml ]; then \
 			echo "Installing $$dir"; \
-			cd $$dir && uv pip install . && cd ../..; \
+			cd $$dir && uv sync --locked --all-extras --dev && cd ../..; \
+		fi \
+	done
+
+lock:
+	@for dir in $(SUBDIRS); do \
+		if [ -f $$dir/pyproject.toml ]; then \
+			echo "Installing $$dir"; \
+			cd $$dir && uv lock && cd ../..; \
 		fi \
 	done
 
