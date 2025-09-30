@@ -1,18 +1,14 @@
+import os
 from logging import Logger
 from typing import Annotated
 
+import oci
 from fastmcp import FastMCP
 from oracle.oci_compute_mcp_server.models import (
     Image,
     Instance,
-)
-from oracle.oci_compute_mcp_server.utils import (
-    create_instance,
-    discover_image,
-    discover_images,
-    discover_instance,
-    discover_instances,
-    perform_instance_action,
+    map_image,
+    map_instance,
 )
 
 logger = Logger(__name__, level="INFO")
@@ -20,32 +16,62 @@ logger = Logger(__name__, level="INFO")
 mcp = FastMCP(name="oracle.oci-compute-mcp-server")
 
 
-@mcp.tool
+def get_compute_client():
+    logger.info("entering get_compute_client")
+    config = oci.config.from_file(
+        profile_name=os.getenv("OCI_CONFIG_PROFILE", oci.config.DEFAULT_PROFILE)
+    )
+
+    private_key = oci.signer.load_private_key_from_file(config["key_file"])
+    token_file = config["security_token_file"]
+    token = None
+    with open(token_file, "r") as f:
+        token = f.read()
+    signer = oci.auth.signers.SecurityTokenSigner(token, private_key)
+    return oci.core.ComputeClient(config, signer=signer)
+
+
+@mcp.tool(description="List Instances in a given compartment")
 async def list_instances(compartment_id: str) -> list[Instance]:
-    """List Instances in a given compartment"""
+    instances: list[Instance] = []
+
     try:
-        logger.info("Discovering Instances")
-        return discover_instances(compartment_id)
+        client = get_compute_client()
+
+        response: oci.response.Response = client.list_instances(
+            compartment_id=compartment_id
+        )
+
+        data: list[oci.core.models.Instance] = response.data
+        for d in data:
+            instance = map_instance(d)
+            instances.append(instance)
+
+        logger.info(f"Found {len(instances)} Instances")
+        return instances
 
     except Exception as e:
         logger.error(f"Error in list_instances tool: {str(e)}")
         raise
 
 
-@mcp.tool
+@mcp.tool(description="Get Instance with a given instance OCID")
 async def get_instance(instance_id: str) -> Instance:
-    """Get Instance with a given instance OCID"""
     try:
-        logger.info("Discovering Instance")
-        return discover_instance(instance_id)
+        client = get_compute_client()
+
+        response: oci.response.Response = client.get_instance(instance_id=instance_id)
+        data: oci.core.models.Instance = response.data
+        logger.info("Found Instance")
+        return map_instance(data)
 
     except Exception as e:
         logger.error(f"Error in get_instance tool: {str(e)}")
         raise
 
 
-@mcp.tool
-def launch_instance(
+@mcp.tool(description="Create a new Instance")
+async def launch_instance(
     compartment_id: str,
     display_name: str,
     availability_domain: str,
@@ -53,17 +79,35 @@ def launch_instance(
     image_id: str,
     shape: Annotated[str, "Instance shape"] = "VM.Standard.A1.Flex",
 ) -> Instance:
-    """Create a new Instance"""
     try:
-        logger.info("Creating Instance")
-        return create_instance(
-            compartment_id,
-            display_name,
-            availability_domain,
-            image_id,
-            subnet_id,
-            shape,
+        client = get_compute_client()
+
+        # Build shape config for Flex shapes
+        shape_config = None
+        try:
+            if isinstance(shape, str) and "Flex" in shape:
+                shape_config = oci.core.models.LaunchInstanceShapeConfigDetails(
+                    ocpus=1, memory_in_gbs=6
+                )
+        except Exception:
+            shape_config = None
+
+        launch_details = oci.core.models.LaunchInstanceDetails(
+            compartment_id=compartment_id,
+            display_name=display_name,
+            availability_domain=availability_domain,
+            shape=shape,
+            source_details=oci.core.models.InstanceSourceViaImageDetails(
+                image_id=image_id
+            ),
+            create_vnic_details=oci.core.models.CreateVnicDetails(subnet_id=subnet_id),
+            shape_config=shape_config,
         )
+
+        response: oci.response.Response = client.launch_instance(launch_details)
+        data: oci.core.models.Instance = response.data
+        logger.info("Launched Instance")
+        return map_instance(data)
 
     except Exception as e:
         logger.error(f"Error in launch_instance tool: {str(e)}")
@@ -80,44 +124,70 @@ def launch_instance(
 #    }
 
 
-@mcp.tool
-def list_images(compartment_id: str, operating_system: str = None) -> list[Image]:
-    """List images in a given compartment, optionally filtered by operating system"""
+@mcp.tool(
+    description="List images in a given compartment, optionally filtered by operating system"  # noqa
+)
+async def list_images(compartment_id: str, operating_system: str = None) -> list[Image]:
+    images: list[Image] = []
+
     try:
-        logger.info("Discovering Images")
-        return discover_images(
-            compartment_id=compartment_id, operating_system=operating_system
-        )
+        client = get_compute_client()
+
+        response: oci.response.Response = None
+        has_next_page = True
+        next_page: str = None
+
+        while has_next_page:
+            response = client.list_images(compartment_id=compartment_id, page=next_page)
+            has_next_page = response.has_next_page
+            next_page = response.next_page if hasattr(response, "next_page") else None
+
+            data: list[oci.core.models.Image] = response.data
+            if operating_system:
+                data = [img for img in data if img.operating_system == operating_system]
+
+            for d in data:
+                image = map_image(d)
+                images.append(image)
+
+        logger.info(f"Found {len(images)} Images")
+        return images
 
     except Exception as e:
         logger.error(f"Error in list_images tool: {str(e)}")
         raise
 
 
-@mcp.tool
-def get_image(image_id: str) -> Image:
-    """Get Image with a given image OCID"""
+@mcp.tool(description="Get Image with a given image OCID")
+async def get_image(image_id: str) -> Image:
     try:
-        logger.info("Discovering Image")
-        return discover_image(image_id)
+        client = get_compute_client()
+
+        response: oci.response.Response = client.get_image(image_id=image_id)
+        data: oci.core.models.Image = response.data
+        logger.info("Found Image")
+        return map_image(data)
 
     except Exception as e:
         logger.error(f"Error in get_image tool: {str(e)}")
         raise
 
 
-@mcp.tool
-def instance_action(
+@mcp.tool(description="Perform the desired action on a given instance")
+async def instance_action(
     instance_id: str,
     action: Annotated[
         str,
         "The action to be performed. The action can only be one of these values: START, STOP, RESET, SOFTSTOP, SOFTRESET, SENDDIAGNOSTICINTERRUPT, DIAGNOSTICREBOOT, REBOOTMIGRATE",  # noqa
     ],
 ) -> Instance:
-    """Perform the desired action on a given instance"""
     try:
-        logger.info("Performing instance action")
-        return perform_instance_action(instance_id, action)
+        client = get_compute_client()
+
+        response: oci.response.Response = client.instance_action(instance_id, action)
+        data: oci.core.models.Instance = response.data
+        logger.info("Performed instance action")
+        return map_instance(data)
 
     except Exception as e:
         logger.error(f"Error in instance_action tool: {str(e)}")
