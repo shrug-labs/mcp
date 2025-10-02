@@ -68,6 +68,7 @@ class TestComputeTools:
             ).structured_content
 
             assert result["id"] == "instance1"
+            assert result["lifecycle_state"] == "PROVISIONING"
 
     # @pytest.mark.asyncio
     # @patch("oracle.oci_compute_mcp_server.server.get_compute_client")

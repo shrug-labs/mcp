@@ -51,6 +51,22 @@ def get_tenancy_info(tenancy_id: str) -> dict:
     }
 
 
+@mcp.tool(description="Lists all of the availability domains in a given tenancy")
+def list_availability_domains(tenancy_id: str) -> list[dict]:
+    identity = get_identity_client()
+    ads: list[oci.identity.models.AvailabilityDomain] = (
+        identity.list_availability_domains(tenancy_id).data
+    )
+    return [
+        {
+            "id": ad.id,
+            "name": ad.name,
+            "compartment_id": ad.compartment_id,
+        }
+        for ad in ads
+    ]
+
+
 @mcp.tool
 def get_current_tenancy() -> dict:
     config = oci.config.from_file(

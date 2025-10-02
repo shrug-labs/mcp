@@ -76,27 +76,48 @@ async def get_instance(instance_id: str) -> Instance:
         raise
 
 
-@mcp.tool(description="Create a new Instance")
+ORACLE_LINUX_9_IMAGE = (
+    "ocid1.image.oc1.iad.aaaaaaaa4l64brs5udx52nedrhlex4cpaorcd2jwvpoududksmw4lgmameqq"
+)
+E5_FLEX = "VM.Standard.E5.Flex"
+DEFAULT_OCPU_COUNT = 1
+DEFAULT_MEMORY_IN_GBS = 12
+
+
+@mcp.tool(
+    description="Create a new instance. Another word for instance could be compute, server, or virtual machine"  # noqa
+)
 async def launch_instance(
-    compartment_id: str,
-    display_name: str,
-    availability_domain: str,
-    subnet_id: str,
-    image_id: str,
-    shape: Annotated[str, "Instance shape"] = "VM.Standard.A1.Flex",
+    compartment_id: Annotated[
+        str,
+        'This is the ocid of the compartment to create the instance in. Must begin with "ocid". If the user specifies a compartment name, then you may use the list_compartments tool in order to map the compartment name to its ocid',  # noqa
+    ],
+    display_name: Annotated[
+        str,
+        'The display name of the instance. Must be between 1 and 255 characters in length. If no value is provded, then you can pass in "instance-<year><month><day>-<hour><minute>" where those time values come from the current date time',  # noqa
+    ],
+    availability_domain: Annotated[
+        str,
+        'This is the availability domain to create the instance in. It must be formatted like "<4-digit-tenancy-code>:<ad-string>". Example: "aNMj:US-ASHBURN-AD-1". The value changes per tenancy, per region, and per AD number. To get a list of availability domains, you may use the list_availability_domains tool to grab the name of the AD. This tool is the only way to get the tenancy-code for an AD. If no AD is specified by the user, you may select the first one available.',  # noqa
+    ],
+    subnet_id: Annotated[
+        str,
+        "This is the ocid of the subnet to attach to the primary virtual network interface card (VNIC) of the compute instance. If no value is provided, you may use the list_subnets tool, selecting the first subnet in the list and passing its ocid.",  # noqa
+    ],
+    image_id: Annotated[
+        str,
+        "This is the ocid of the image for the instance. If it is left unspecified or if the user specifies an image name, then you may have to list the images in the root compartment in order to map the image name to image ocid or display a list of images for the user to choose from.",  # noqa
+    ] = ORACLE_LINUX_9_IMAGE,
+    shape: Annotated[str, "This is the name of the shape for the instance"] = E5_FLEX,
+    ocpus: Annotated[
+        int, "The total number of cores in the instances"
+    ] = DEFAULT_OCPU_COUNT,
+    memory_in_gbs: Annotated[
+        float, "The total amount of memory in gigabytes to assigned to the instance"
+    ] = DEFAULT_MEMORY_IN_GBS,
 ) -> Instance:
     try:
         client = get_compute_client()
-
-        # Build shape config for Flex shapes
-        shape_config = None
-        try:
-            if isinstance(shape, str) and "Flex" in shape:
-                shape_config = oci.core.models.LaunchInstanceShapeConfigDetails(
-                    ocpus=1, memory_in_gbs=6
-                )
-        except Exception:
-            shape_config = None
 
         launch_details = oci.core.models.LaunchInstanceDetails(
             compartment_id=compartment_id,
@@ -104,10 +125,12 @@ async def launch_instance(
             availability_domain=availability_domain,
             shape=shape,
             source_details=oci.core.models.InstanceSourceViaImageDetails(
-                image_id=image_id
+                image_id=image_id,
             ),
             create_vnic_details=oci.core.models.CreateVnicDetails(subnet_id=subnet_id),
-            shape_config=shape_config,
+            shape_config=oci.core.models.LaunchInstanceShapeConfigDetails(
+                ocpus=ocpus, memory_in_gbs=memory_in_gbs
+            ),
         )
 
         response: oci.response.Response = client.launch_instance(launch_details)

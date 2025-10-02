@@ -47,6 +47,35 @@ class TestIdentityTools:
 
     @pytest.mark.asyncio
     @patch("oracle.oci_identity_mcp_server.server.get_identity_client")
+    async def test_list_availability_domains(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_get_client.return_value = mock_client
+
+        mock_list_response = create_autospec(oci.response.Response)
+        mock_list_response.data = [
+            oci.identity.models.AvailabilityDomain(
+                id="ad1",
+                name="AD-1",
+                compartment_id="compartment1",
+            )
+        ]
+        mock_client.list_availability_domains.return_value = mock_list_response
+
+        async with Client(mcp) as client:
+            result = (
+                await client.call_tool(
+                    "list_availability_domains",
+                    {
+                        "tenancy_id": "test_tenancy",
+                    },
+                )
+            ).structured_content["result"]
+
+            assert len(result) == 1
+            assert result[0]["id"] == "ad1"
+
+    @pytest.mark.asyncio
+    @patch("oracle.oci_identity_mcp_server.server.get_identity_client")
     async def test_get_tenancy_info(self, mock_get_client):
         mock_client = MagicMock()
         mock_get_client.return_value = mock_client
