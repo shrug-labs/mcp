@@ -4,4 +4,5 @@ Licensed under the Universal Permissive License v1.0 as shown at
 https://oss.oracle.com/licenses/upl.
 """
 
+__project__ = "oracle.datetime-helper-mcp-server"
 __version__ = "0.1.0"

@@ -10,15 +10,20 @@ from logging import Logger
 import oci
 from fastmcp import FastMCP
 
+from . import __project__, __version__
+
 logger = Logger(__name__, level="INFO")
 
-mcp = FastMCP(name="oracle.oci-registry-mcp-server")
+mcp = FastMCP(name=__project__)
 
 
 def get_ocir_client():
     config = oci.config.from_file(
         profile_name=os.getenv("OCI_CONFIG_PROFILE", oci.config.DEFAULT_PROFILE)
     )
+
+    config["additional_user_agent"] = f"{__project__}/{__version__}"
+
     private_key = oci.signer.load_private_key_from_file(config["key_file"])
     token_file = config["security_token_file"]
     token = None

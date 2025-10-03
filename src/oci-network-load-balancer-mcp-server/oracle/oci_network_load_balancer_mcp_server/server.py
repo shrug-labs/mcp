@@ -11,9 +11,11 @@ from typing import Annotated
 import oci
 from fastmcp import FastMCP
 
+from . import __project__
+
 logger = Logger(__name__, level="INFO")
 
-mcp = FastMCP(name="oracle.oci-network-load-balancer-mcp-server")
+mcp = FastMCP(name=__project__)
 
 
 def get_nlb_client():

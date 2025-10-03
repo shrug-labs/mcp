@@ -13,9 +13,14 @@ from typing import Annotated
 import oci
 from fastmcp import FastMCP
 
+from . import __project__, __version__
+
 logger = Logger(__name__, level="INFO")
 
-mcp = FastMCP(name="oracle.oci-api-mcp-server")
+mcp = FastMCP(name=__project__)
+
+user_agent_name = __project__.split("oracle.", 1)[1].split("-server", 1)[0]
+USER_AGENT = f"{user_agent_name}/{__version__}"
 
 
 @mcp.resource("resource://oci-api-commands")
@@ -24,6 +29,9 @@ def get_oci_commands() -> str:
         # Run OCI CLI command using subprocess
         result = subprocess.run(
             ["oci", "--help"],
+            env={
+                "OCI_SDK_APPEND_USER_AGENT": USER_AGENT,
+            },
             capture_output=True,
             text=True,
             check=True,
@@ -57,6 +65,9 @@ def get_oci_command_help(command: str) -> str:
         # Run OCI CLI command using subprocess
         result = subprocess.run(
             ["oci"] + command.split() + ["--help"],
+            env={
+                "OCI_SDK_APPEND_USER_AGENT": USER_AGENT,
+            },
             capture_output=True,
             text=True,
             check=True,
@@ -90,6 +101,9 @@ def run_oci_command(
             + [profile]
             + ["--auth", "security_token"]
             + command.split(),
+            env={
+                "OCI_SDK_APPEND_USER_AGENT": USER_AGENT,
+            },
             capture_output=True,
             text=True,
             check=True,

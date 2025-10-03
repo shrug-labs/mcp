@@ -6,6 +6,14 @@ build:
 	@for dir in $(SUBDIRS); do \
 		if [ -f $$dir/pyproject.toml ]; then \
 			echo "Building $$dir"; \
+			name=$$(uv run tomlq -r '.project.name' $$dir/pyproject.toml); \
+			version=$$(uv run tomlq -r '.project.version' $$dir/pyproject.toml); \
+			if [ -d $$dir/oracle/*_mcp_server ]; then \
+				init_py_file=$$(echo $$dir/oracle/*_mcp_server/__init__.py); \
+				echo "\"\"\"\nCopyright (c) 2025, Oracle and/or its affiliates.\nLicensed under the Universal Permissive License v1.0 as shown at\nhttps://oss.oracle.com/licenses/upl.\n\"\"\"\n" > $$init_py_file; \
+				echo "__project__ = \"$$name\"" >> $$init_py_file; \
+				echo "__version__ = \"$$version\"" >> $$init_py_file; \
+			fi; \
 			cd $$dir && uv build && cd ../..; \
 		fi \
 	done

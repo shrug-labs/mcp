@@ -4,12 +4,18 @@ Licensed under the Universal Permissive License v1.0 as shown at
 https://oss.oracle.com/licenses/upl.
 """
 
+import importlib.metadata
 import subprocess
 from unittest.mock import MagicMock, patch
 
 import pytest
 from fastmcp import Client
+from oracle.oci_api_mcp_server import __project__
 from oracle.oci_api_mcp_server.server import mcp
+
+__version__ = importlib.metadata.version(__project__)
+user_agent_name = __project__.split("oracle.", 1)[1].split("-server", 1)[0]
+USER_AGENT = f"{user_agent_name}/{__version__}"
 
 
 class TestOCITools:
@@ -31,6 +37,9 @@ class TestOCITools:
             assert result == "Help output"
             mock_run.assert_called_once_with(
                 ["oci", "compute", "instance", "list", "--help"],
+                env={
+                    "OCI_SDK_APPEND_USER_AGENT": USER_AGENT,
+                },
                 capture_output=True,
                 text=True,
                 check=True,
@@ -118,6 +127,9 @@ class TestOCITools:
             assert result == "OCI commands output"
             mock_run.assert_called_once_with(
                 ["oci", "--help"],
+                env={
+                    "OCI_SDK_APPEND_USER_AGENT": USER_AGENT,
+                },
                 capture_output=True,
                 text=True,
                 check=True,

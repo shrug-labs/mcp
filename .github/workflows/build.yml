@@ -1,7 +1,7 @@
 name: Matrix Build
 on:
   push:
-    branches: 
+    branches:
       - "main"
   pull_request:
     branches:
@@ -22,15 +22,30 @@ jobs:
         with:
           python-version: '3.13'
 
-      - name: Install uv and setup Python
+      - name: Install uv
         uses: astral-sh/setup-uv@v6
         with:
           version: "0.8.19"
 
+      - name: Install tomlq
+        run: pip install tomlq
+
+      - name: Update __init__.py
+        working-directory: src/${{ matrix.directory }}
+        run: |
+          name=$(uv run tomlq -r '.project.name' pyproject.toml)
+          version=$(uv run tomlq -r '.project.version' pyproject.toml)
+          if [ -d oracle/*_mcp_server ]; then
+            init_py_file=oracle/*_mcp_server/__init__.py
+            echo "\"\"\"\nCopyright (c) 2025, Oracle and/or its affiliates.\nLicensed under the Universal Permissive License v1.0 as shown at\nhttps://oss.oracle.com/licenses/upl.\n\"\"\"\n" > $$init_py_file; \
+            echo "__project__ = \"$name\"" >> $init_py_file
+            echo "__version__ = \"$version\"" >> $init_py_file
+          fi
+
       - name: Sync
         working-directory: src/${{ matrix.directory }}
         run: uv sync --locked --all-extras --dev
-        
+
       - name: Test
         working-directory: src/${{ matrix.directory }}
         run: uv run pytest
@@ -42,7 +57,7 @@ jobs:
       - name: Test install
         working-directory: src/${{ matrix.directory }}
         run: uv pip install .
-          
+
 
   get-directories:
     runs-on: ubuntu-latest
