@@ -10,6 +10,18 @@ from typing import Annotated
 
 import oci
 from fastmcp import FastMCP
+from oracle.oci_networking_mcp_server.models import (
+    NetworkSecurityGroup,
+    Response,
+    SecurityList,
+    Subnet,
+    Vcn,
+    map_network_security_group,
+    map_response,
+    map_security_list,
+    map_subnet,
+    map_vcn,
+)
 
 from . import __project__, __version__
 
@@ -34,71 +46,152 @@ def get_networking_client():
 
 
 @mcp.tool
-def list_vcns(compartment_id: str) -> list[dict]:
-    networking = get_networking_client()
-    vcns = networking.list_vcns(compartment_id).data
-    return [
-        {
-            "vcn_id": vcn.id,
-            "display_name": vcn.display_name,
-            "lifecycle_state": vcn.lifecycle_state,
-        }
-        for vcn in vcns
-    ]
+async def list_vcns(compartment_id: str) -> list[Vcn]:
+    vcns: list[Vcn] = []
+
+    try:
+        client = get_networking_client()
+
+        response: oci.response.Response = None
+        has_next_page = True
+        next_page: str = None
+
+        while has_next_page:
+            response = client.list_vcns(compartment_id=compartment_id, page=next_page)
+            has_next_page = response.has_next_page
+            next_page = response.next_page if hasattr(response, "next_page") else None
+
+            data: list[oci.core.models.Vcn] = response.data
+            for d in data:
+                vcn = map_vcn(d)
+                vcns.append(vcn)
+
+        logger.info(f"Found {len(vcns)} Vcns")
+        return vcns
+
+    except Exception as e:
+        logger.error(f"Error in list_vcns tool: {str(e)}")
+        raise
 
 
 @mcp.tool
-def get_vcn(vcn_id: str):
-    networking = get_networking_client()
-    return networking.get_vcn(vcn_id).data
+async def get_vcn(vcn_id: str) -> Vcn:
+    try:
+        client = get_networking_client()
+
+        response: oci.response.Response = client.get_vcn(vcn_id)
+        data: oci.core.models.Vcn = response.data
+        logger.info("Found Vcn")
+        return map_vcn(data)
+
+    except Exception as e:
+        logger.error(f"Error in get_vcn tool: {str(e)}")
+        raise
 
 
 @mcp.tool
-def delete_vcn(vcn_id: str):
-    networking = get_networking_client()
-    return networking.delete_vcn(vcn_id).data
+async def delete_vcn(vcn_id: str) -> Response:
+    try:
+        client = get_networking_client()
+
+        response: oci.response.Response = client.delete_vcn(vcn_id)
+        logger.info("Deleted Vcn")
+        return map_response(response)
+
+    except Exception as e:
+        logger.error(f"Error in delete_vcn tool: {str(e)}")
+        raise
 
 
 @mcp.tool
-def create_vcn(compartment_id: str, cidr_block: str, display_name: str):
-    networking = get_networking_client()
-    vcn_details = oci.core.models.CreateVcnDetails(
-        compartment_id=compartment_id, cidr_block=cidr_block, display_name=display_name
-    )
-    return networking.create_vcn(vcn_details).data
+async def create_vcn(compartment_id: str, cidr_block: str, display_name: str) -> Vcn:
+    try:
+        client = get_networking_client()
+
+        vcn_details = oci.core.models.CreateVcnDetails(
+            compartment_id=compartment_id,
+            cidr_block=cidr_block,
+            display_name=display_name,
+        )
+
+        response: oci.response.Response = client.create_vcn(vcn_details)
+        data: oci.core.models.Vcn = response.data
+        logger.info("Created Vcn")
+        return map_vcn(data)
+
+    except Exception as e:
+        logger.error(f"Error in create_vcn tool: {str(e)}")
+        raise
 
 
 @mcp.tool
-def create_subnet(vcn_id: str, compartment_id: str, cidr_block: str, display_name: str):
-    networking = get_networking_client()
-    subnet_details = oci.core.models.CreateSubnetDetails(
-        compartment_id=compartment_id,
-        vcn_id=vcn_id,
-        cidr_block=cidr_block,
-        display_name=display_name,
-    )
-    return networking.create_subnet(subnet_details).data
+async def list_subnets(compartment_id: str, vcn_id: str = None) -> list[Subnet]:
+    subnets: list[Subnet] = []
+
+    try:
+        client = get_networking_client()
+
+        response: oci.response.Response = None
+        has_next_page = True
+        next_page: str = None
+
+        while has_next_page:
+            response = client.list_subnets(
+                compartment_id=compartment_id, vcn_id=vcn_id, page=next_page
+            )
+            has_next_page = response.has_next_page
+            next_page = response.next_page if hasattr(response, "next_page") else None
+
+            data: list[oci.core.models.Subnet] = response.data
+            for d in data:
+                subnet = map_subnet(d)
+                subnets.append(subnet)
+
+        logger.info(f"Found {len(subnets)} Subnets")
+        return subnets
+
+    except Exception as e:
+        logger.error(f"Error in list_subnets tool: {str(e)}")
+        raise
 
 
 @mcp.tool
-def list_subnets(compartment_id: str, vcn_id: str = None) -> list[dict]:
-    networking = get_networking_client()
-    subnets = networking.list_subnets(compartment_id, vcn_id=vcn_id).data
-    return [
-        {
-            "subnet_id": subnet.id,
-            "vcn_id": subnet.vcn_id,
-            "display_name": subnet.display_name,
-            "lifecycle_state": subnet.lifecycle_state,
-        }
-        for subnet in subnets
-    ]
+async def get_subnet(subnet_id: str) -> Subnet:
+    try:
+        client = get_networking_client()
+
+        response: oci.response.Response = client.get_subnet(subnet_id)
+        data: oci.core.models.Subnet = response.data
+        logger.info("Found Subnet")
+        return map_subnet(data)
+
+    except Exception as e:
+        logger.error(f"Error in get_subnet tool: {str(e)}")
+        raise
 
 
 @mcp.tool
-def get_subnet(subnet_id: str):
-    networking = get_networking_client()
-    return networking.get_subnet(subnet_id).data
+async def create_subnet(
+    vcn_id: str, compartment_id: str, cidr_block: str, display_name: str
+) -> Subnet:
+    try:
+        client = get_networking_client()
+
+        subnet_details = oci.core.models.CreateSubnetDetails(
+            compartment_id=compartment_id,
+            vcn_id=vcn_id,
+            cidr_block=cidr_block,
+            display_name=display_name,
+        )
+
+        response: oci.response.Response = client.create_subnet(subnet_details)
+        data: oci.core.models.Vcn = response.data
+        logger.info("Created Subnet")
+        return map_subnet(data)
+
+    except Exception as e:
+        logger.error(f"Error in create_subnet tool: {str(e)}")
+        raise
 
 
 @mcp.tool(
@@ -107,62 +200,116 @@ def get_subnet(subnet_id: str):
     "If the VCN ID is not provided, then the list includes the security lists from all "
     "VCNs in the specified compartment.",
 )
-def list_security_lists(
+async def list_security_lists(
     compartment_id: Annotated[str, "Compartment ocid"],
     vcn_id: Annotated[str, "VCN ocid"] = None,
-) -> list[dict]:
-    networking = get_networking_client()
-    security_lists = networking.list_security_lists(compartment_id, vcn_id=vcn_id).data
-    return [
-        {
-            "security_list_id": security_list.id,
-            "display_name": security_list.display_name,
-            "lifecycle_state": security_list.lifecycle_state,
-            "vcn_id": security_list.vcn_id,
-        }
-        for security_list in security_lists
-    ]
+) -> list[SecurityList]:
+    security_lists: list[SecurityList] = []
+
+    try:
+        client = get_networking_client()
+
+        response: oci.response.Response = None
+        has_next_page = True
+        next_page: str = None
+
+        while has_next_page:
+            response = client.list_security_lists(
+                compartment_id=compartment_id, vcn_id=vcn_id, page=next_page
+            )
+            has_next_page = response.has_next_page
+            next_page = response.next_page if hasattr(response, "next_page") else None
+
+            data: list[oci.core.models.SecurityList] = response.data
+            for d in data:
+                security_list = map_security_list(d)
+                security_lists.append(security_list)
+
+        logger.info(f"Found {len(security_lists)} Security Lists")
+        return security_lists
+
+    except Exception as e:
+        logger.error(f"Error in list_security_lists tool: {str(e)}")
+        raise
 
 
 @mcp.tool(name="get_security_list", description="Gets the security list's information.")
-def get_security_list(security_list_id: Annotated[str, "security list id"]):
-    networking = get_networking_client()
-    return networking.get_security_list(security_list_id).data
+async def get_security_list(security_list_id: Annotated[str, "security list id"]):
+    try:
+        client = get_networking_client()
+
+        response: oci.response.Response = client.get_security_list(security_list_id)
+        data: oci.core.models.Subnet = response.data
+        logger.info("Found Security List")
+        return map_security_list(data)
+
+    except Exception as e:
+        logger.error(f"Error in get_security_list tool: {str(e)}")
+        raise
 
 
 @mcp.tool(
-    name="list_network_security_group",
     description="Lists either the network security groups in the specified compartment,"
     "or those associated with the specified VLAN. You must specify either a vlanId or"
     "a compartmentId, but not both. If you specify a vlanId, all other parameters are "
     "ignored.",
 )
-def list_network_security_groups(
+async def list_network_security_groups(
     compartment_id: Annotated[str, "compartment ocid"],
     vlan_id: Annotated[str, "vlan ocid"] = None,
     vcn_id: Annotated[str, "vcn ocid"] = None,
-) -> list[dict]:
-    networking = get_networking_client()
-    nsg_list = networking.list_network_security_groups(
-        compartment_id=compartment_id, vlan_id=vlan_id, vcn_id=vcn_id
-    ).data
-    return [
-        {
-            "nsg_id": nsg.id,
-            "display_name": nsg.display_name,
-            "lifecycle_state": nsg.lifecycle_state,
-        }
-        for nsg in nsg_list
-    ]
+) -> list[NetworkSecurityGroup]:
+    nsgs: list[NetworkSecurityGroup] = []
+
+    try:
+        client = get_networking_client()
+
+        response: oci.response.Response = None
+        has_next_page = True
+        next_page: str = None
+
+        while has_next_page:
+            response = client.list_network_security_groups(
+                compartment_id=compartment_id,
+                vlan_id=vlan_id,
+                vcn_id=vcn_id,
+                page=next_page,
+            )
+            has_next_page = response.has_next_page
+            next_page = response.next_page if hasattr(response, "next_page") else None
+
+            data: list[oci.core.models.NetworkSecurityGroup] = response.data
+            for d in data:
+                nsg = map_network_security_group(d)
+                nsgs.append(nsg)
+
+        logger.info(f"Found {len(nsgs)} Network Security Groups")
+        return nsgs
+
+    except Exception as e:
+        logger.error(f"Error in list_network_security_groups tool: {str(e)}")
+        raise
 
 
 @mcp.tool(
-    name="get_network_security_group",
     description="Gets the specified network security group's information.",
 )
-def get_network_security_group(network_security_group_id: Annotated[str, "nsg id"]):
-    networking = get_networking_client()
-    return networking.get_network_security_group(network_security_group_id).data
+async def get_network_security_group(
+    network_security_group_id: Annotated[str, "nsg id"],
+):
+    try:
+        client = get_networking_client()
+
+        response: oci.response.Response = client.get_network_security_group(
+            network_security_group_id
+        )
+        data: oci.core.models.Subnet = response.data
+        logger.info("Found Network Security Group")
+        return map_network_security_group(data)
+
+    except Exception as e:
+        logger.error(f"Error in get_network_security_group tool: {str(e)}")
+        raise
 
 
 def main():
