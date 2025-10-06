@@ -156,3 +156,24 @@ class TestOCITools:
             result = (await client.read_resource("resource://oci-api-commands"))[0].text
 
             assert "error" in result
+
+    @pytest.mark.asyncio
+    @patch("oracle.oci_api_mcp_server.server.subprocess.run")
+    @patch("oracle.oci_api_mcp_server.server.json.loads")
+    async def test_run_oci_command_denied(self, mock_json_loads, mock_run):
+        mock_result = MagicMock()
+        mock_result.stdout = '{"key": "value"}'
+        mock_result.stderr = ""
+        mock_run.return_value = mock_result
+        mock_json_loads.return_value = {"key": "value"}
+
+        async with Client(mcp) as client:
+            result = (
+                await client.call_tool(
+                    "run_oci_command", {"command": "compute instance terminate"}
+                )
+            ).data
+
+            print(type(result))
+            assert "error" in result
+            assert any("denied by denylist" in value for value in result.values())
