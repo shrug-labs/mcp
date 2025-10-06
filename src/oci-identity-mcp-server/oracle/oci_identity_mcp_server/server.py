@@ -4,6 +4,8 @@ Licensed under the Universal Permissive License v1.0 as shown at
 https://oss.oracle.com/licenses/upl.
 """
 
+import base64
+import json
 import os
 
 import oci
@@ -104,7 +106,37 @@ def get_current_user() -> dict:
     config = oci.config.from_file(
         profile_name=os.getenv("OCI_CONFIG_PROFILE", oci.config.DEFAULT_PROFILE)
     )
-    user_id = config["user"]
+
+    # Prefer explicit user from config if present
+    user_id = config.get("user")
+
+    # Fallback: derive user OCID from the security token (session auth)
+    if not user_id:
+        token_file = config.get("security_token_file")
+        if token_file and os.path.exists(token_file):
+            with open(token_file, "r") as f:
+                token = f.read().strip()
+
+            # Expect JWT-like token: header.payload.signature (base64url)
+            if "." in token:
+                try:
+                    payload_b64 = token.split(".", 2)[1]
+                    padding = "=" * (-len(payload_b64) % 4)
+                    payload_json = base64.urlsafe_b64decode(
+                        payload_b64 + padding
+                    ).decode("utf-8")
+                    payload = json.loads(payload_json)
+                    # 'sub' typically contains the user OCID for session tokens;
+                    # fallback to opc-user-id if present
+                    user_id = payload.get("sub") or payload.get("opc-user-id")
+                except Exception:
+                    user_id = None
+
+        if not user_id:
+            raise KeyError(
+                "Unable to determine current user OCID from config or security token"
+            )
+
     user = identity.get_user(user_id).data
     return {
         "id": user.id,
