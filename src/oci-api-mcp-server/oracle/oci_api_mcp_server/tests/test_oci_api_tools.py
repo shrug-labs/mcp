@@ -6,7 +6,7 @@ https://oss.oracle.com/licenses/upl.
 
 import importlib.metadata
 import subprocess
-from unittest.mock import MagicMock, patch
+from unittest.mock import ANY, MagicMock, patch
 
 import pytest
 from fastmcp import Client
@@ -35,11 +35,13 @@ class TestOCITools:
             ).structured_content["result"]
 
             assert result == "Help output"
+            assert (
+                mock_run.call_args.kwargs["env"]["OCI_SDK_APPEND_USER_AGENT"]
+                == USER_AGENT
+            )
             mock_run.assert_called_once_with(
                 ["oci", "compute", "instance", "list", "--help"],
-                env={
-                    "OCI_SDK_APPEND_USER_AGENT": USER_AGENT,
-                },
+                env=ANY,
                 capture_output=True,
                 text=True,
                 check=True,
@@ -125,11 +127,13 @@ class TestOCITools:
             result = (await client.read_resource("resource://oci-api-commands"))[0].text
 
             assert result == "OCI commands output"
+            assert (
+                mock_run.call_args.kwargs["env"]["OCI_SDK_APPEND_USER_AGENT"]
+                == USER_AGENT
+            )
             mock_run.assert_called_once_with(
                 ["oci", "--help"],
-                env={
-                    "OCI_SDK_APPEND_USER_AGENT": USER_AGENT,
-                },
+                env=ANY,
                 capture_output=True,
                 text=True,
                 check=True,

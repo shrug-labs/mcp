@@ -25,13 +25,14 @@ USER_AGENT = f"{user_agent_name}/{__version__}"
 
 @mcp.resource("resource://oci-api-commands")
 def get_oci_commands() -> str:
+    env_copy = os.environ.copy()
+    env_copy["OCI_SDK_APPEND_USER_AGENT"] = USER_AGENT
+
     try:
         # Run OCI CLI command using subprocess
         result = subprocess.run(
             ["oci", "--help"],
-            env={
-                "OCI_SDK_APPEND_USER_AGENT": USER_AGENT,
-            },
+            env=env_copy,
             capture_output=True,
             text=True,
             check=True,
@@ -61,13 +62,14 @@ def get_oci_command_help(command: str) -> str:
         2. compute instance
         3. compute
     """
+    env_copy = os.environ.copy()
+    env_copy["OCI_SDK_APPEND_USER_AGENT"] = USER_AGENT
+
     try:
         # Run OCI CLI command using subprocess
         result = subprocess.run(
             ["oci"] + command.split() + ["--help"],
-            env={
-                "OCI_SDK_APPEND_USER_AGENT": USER_AGENT,
-            },
+            env=env_copy,
             capture_output=True,
             text=True,
             check=True,
@@ -89,6 +91,8 @@ def run_oci_command(
     Only provide the command after 'oci', do not include the string 'oci'
     in your command.
     """
+    env_copy = os.environ.copy()
+    env_copy["OCI_SDK_APPEND_USER_AGENT"] = USER_AGENT
 
     print(command)
 
@@ -101,9 +105,7 @@ def run_oci_command(
             + [profile]
             + ["--auth", "security_token"]
             + command.split(),
-            env={
-                "OCI_SDK_APPEND_USER_AGENT": USER_AGENT,
-            },
+            env=env_copy,
             capture_output=True,
             text=True,
             check=True,
