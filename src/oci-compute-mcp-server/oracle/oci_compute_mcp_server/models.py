@@ -637,3 +637,147 @@ def map_image(image_data: oci.core.models.Image) -> Image:
 
 
 # endregion
+
+# region Response (oci.response.Response)
+
+
+class Request(BaseModel):
+    """
+    Pydantic model mirroring the fields of oci.request.Request.
+    """
+
+    method: Optional[str] = Field(None, description="The HTTP method.")
+    url: Optional[str] = Field(None, description="URL that will serve the request.")
+    query_params: Optional[Dict[str, Any]] = Field(
+        None, description="Query parameters in the URL."
+    )
+    header_params: Optional[Dict[str, Any]] = Field(
+        None, description="Request header parameters."
+    )
+    body: Optional[Any] = Field(None, description="Request body.")
+    response_type: Optional[str] = Field(
+        None, description="Expected response data type."
+    )
+    enforce_content_headers: Optional[bool] = Field(
+        None,
+        description=(
+            "Whether content headers should be added for PUT and POST requests when not present."  # noqa
+        ),
+    )
+
+
+class Response(BaseModel):
+    """
+    Pydantic model mirroring the fields of oci.response.Response.
+    Includes derived fields next_page, request_id, and has_next_page.
+    """
+
+    status: Optional[int] = Field(None, description="The HTTP status code.")
+    headers: Optional[Dict[str, Any]] = Field(
+        None, description="The HTTP headers (case-insensitive keys)."
+    )
+    data: Optional[Any] = Field(
+        None, description="The response data. Type depends on the request."
+    )
+    request: Optional[Request] = Field(
+        None, description="The corresponding request for this response."
+    )
+    next_page: Optional[str] = Field(
+        None, description="The value of the opc-next-page response header."
+    )
+    request_id: Optional[str] = Field(
+        None, description="The ID of the request that generated this response."
+    )
+    has_next_page: Optional[bool] = Field(
+        None, description="Whether there is a next page of results."
+    )
+
+
+def map_request(req) -> Request | None:
+    """
+    Convert an oci.request.Request to oracle.oci_networking_mcp_server.models.Request.
+    """
+    if not req:
+        return None
+    return Request(
+        method=getattr(req, "method", None),
+        url=getattr(req, "url", None),
+        query_params=getattr(req, "query_params", None),
+        header_params=getattr(req, "header_params", None),
+        body=getattr(req, "body", None),
+        response_type=getattr(req, "response_type", None),
+        enforce_content_headers=getattr(req, "enforce_content_headers", None),
+    )
+
+
+def _map_headers(headers) -> Dict[str, Any] | None:
+    if headers is None:
+        return None
+    try:
+        # requests.structures.CaseInsensitiveDict is convertible to dict
+        return dict(headers)
+    except Exception:
+        try:
+            return {k: v for k, v in headers.items()}
+        except Exception:
+            return _oci_to_dict(headers) or None
+
+
+def _map_response_data(data: Any) -> Any:
+    """
+    Best-effort mapping of Response.data to Pydantic-friendly structures.
+    Recognizes common networking models; otherwise falls back to to_dict.
+    """
+    # Handle sequences
+    if isinstance(data, (list, tuple)):
+        return [_map_response_data(x) for x in data]
+
+    # Already a plain type
+    if data is None or isinstance(data, (str, int, float, bool)):
+        return data
+    if isinstance(data, dict):
+        return data
+
+    # Known OCI networking models
+    try:
+        if isinstance(data, oci.core.models.Instance):
+            return map_instance(data)
+    except Exception:
+        # Ignore import/type detection issues and fall through to generic handling
+        pass
+
+    # Fallback: attempt to convert OCI SDK models or other objects to dict
+    coerced = _oci_to_dict(data)
+    return coerced if coerced is not None else data
+
+
+def map_response(resp: oci.response.Response) -> Response | None:
+    """
+    Convert oci.response.Response to oracle.oci_networking_mcp_server.models.Response,
+    including nested Request and best-effort mapping of data.
+    """
+    if resp is None:
+        return None
+
+    headers = _map_headers(getattr(resp, "headers", None))
+    next_page = getattr(resp, "next_page", None)
+    request_id = getattr(resp, "request_id", None)
+
+    # Derive from headers if not already present
+    if next_page is None and headers is not None:
+        next_page = headers.get("opc-next-page")
+    if request_id is None and headers is not None:
+        request_id = headers.get("opc-request-id")
+
+    return Response(
+        status=getattr(resp, "status", None),
+        headers=headers,
+        data=_map_response_data(getattr(resp, "data", None)),
+        request=map_request(getattr(resp, "request", None)),
+        next_page=next_page,
+        request_id=request_id,
+        has_next_page=(next_page is not None),
+    )
+
+
+# endregion

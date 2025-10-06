@@ -13,8 +13,10 @@ from fastmcp import FastMCP
 from oracle.oci_compute_mcp_server.models import (
     Image,
     Instance,
+    Response,
     map_image,
     map_instance,
+    map_response,
 )
 
 from . import __project__, __version__
@@ -89,28 +91,50 @@ DEFAULT_MEMORY_IN_GBS = 12
 
 
 @mcp.tool(
-    description="Create a new instance. Another word for instance could be compute, server, or virtual machine"  # noqa
+    description="Create a new instance. "
+    "Another word for instance could be compute, server, or virtual machine"
 )
 async def launch_instance(
     compartment_id: Annotated[
         str,
-        'This is the ocid of the compartment to create the instance in. Must begin with "ocid". If the user specifies a compartment name, then you may use the list_compartments tool in order to map the compartment name to its ocid',  # noqa
+        "This is the ocid of the compartment to create the instance in."
+        'Must begin with "ocid". If the user specifies a compartment name, '
+        "then you may use the list_compartments tool in order to map the "
+        "compartment name to its ocid",
     ],
     display_name: Annotated[
         str,
-        'The display name of the instance. Must be between 1 and 255 characters in length. If no value is provded, then you can pass in "instance-<year><month><day>-<hour><minute>" where those time values come from the current date time',  # noqa
+        "The display name of the instance. "
+        "Must be between 1 and 255 characters in length. "
+        "If no value is provded, then you can pass in "
+        '"instance-<year><month><day>-<hour><minute>" '
+        "where those time values come from the current date time",
     ],
     availability_domain: Annotated[
         str,
-        'This is the availability domain to create the instance in. It must be formatted like "<4-digit-tenancy-code>:<ad-string>". Example: "aNMj:US-ASHBURN-AD-1". The value changes per tenancy, per region, and per AD number. To get a list of availability domains, you may use the list_availability_domains tool to grab the name of the AD. This tool is the only way to get the tenancy-code for an AD. If no AD is specified by the user, you may select the first one available.',  # noqa
+        "This is the availability domain to create the instance in. "
+        'It must be formatted like "<4-digit-tenancy-code>:<ad-string>". '
+        'Example: "aNMj:US-ASHBURN-AD-1". '
+        "The value changes per tenancy, per region, and per AD number. "
+        "To get a list of availability domains, you may use the "
+        "list_availability_domains tool to grab the name of the AD. "
+        "This tool is the only way to get the tenancy-code for an AD. "
+        "If no AD is specified by the user, you may select the first one available.",
     ],
     subnet_id: Annotated[
         str,
-        "This is the ocid of the subnet to attach to the primary virtual network interface card (VNIC) of the compute instance. If no value is provided, you may use the list_subnets tool, selecting the first subnet in the list and passing its ocid.",  # noqa
+        "This is the ocid of the subnet to attach to the "
+        "primary virtual network interface card (VNIC) of the compute instance. "
+        "If no value is provided, you may use the list_subnets tool, "
+        "selecting the first subnet in the list and passing its ocid.",
     ],
     image_id: Annotated[
         str,
-        "This is the ocid of the image for the instance. If it is left unspecified or if the user specifies an image name, then you may have to list the images in the root compartment in order to map the image name to image ocid or display a list of images for the user to choose from.",  # noqa
+        "This is the ocid of the image for the instance. "
+        "If it is left unspecified or if the user specifies an image name, "
+        "then you may have to list the images in the root compartment "
+        "in order to map the image name to image ocid or display a "
+        "list of images for the user to choose from.",
     ] = ORACLE_LINUX_9_IMAGE,
     shape: Annotated[str, "This is the name of the shape for the instance"] = E5_FLEX,
     ocpus: Annotated[
@@ -147,14 +171,49 @@ async def launch_instance(
         raise
 
 
-# @mcp.tool
-# def terminate_instance(instance_id: str):
-#    compute = get_compute_client()
-#    response = compute.terminate_instance(instance_id)
-#    return {
-#        "status": "terminated",
-#        "opc_request_id": response.headers.get("opc-request-id"),
-#    }
+@mcp.tool
+async def terminate_instance(instance_id: str) -> Response:
+    try:
+        client = get_compute_client()
+
+        response: oci.response.Response = client.terminate_instance(instance_id)
+        logger.info("Deleted Instance")
+        return map_response(response)
+
+    except Exception as e:
+        logger.error(f"Error in delete_vcn tool: {str(e)}")
+        raise
+
+
+@mcp.tool(
+    description="Update instance. " "This may restart the instance so warn the user"
+)
+async def update_instance(
+    instance_id: Annotated[str, "The ocid of the instance to update"],
+    ocpus: Annotated[int, "The total number of cores in the instances"] = None,
+    memory_in_gbs: Annotated[
+        float, "The total amount of memory in gigabytes to assigned to the instance"
+    ] = None,
+) -> Instance:
+    try:
+        client = get_compute_client()
+
+        update_instance_details = oci.core.models.UpdateInstanceDetails(
+            shape_config=oci.core.models.UpdateInstanceShapeConfigDetails(
+                ocpus=ocpus, memory_in_gbs=memory_in_gbs
+            ),
+        )
+
+        response: oci.response.Response = client.update_instance(
+            instance_id=instance_id, update_instance_details=update_instance_details
+        )
+        data: oci.core.models.Instance = response.data
+        logger.info("Updated Instance")
+        return map_instance(data)
+
+    except Exception as e:
+        logger.error(f"Error in update_instance tool: {str(e)}")
+        raise
 
 
 @mcp.tool(
@@ -225,54 +284,6 @@ async def instance_action(
     except Exception as e:
         logger.error(f"Error in instance_action tool: {str(e)}")
         raise
-
-
-# TODO: commenting this out until create instance gets fixed as well
-# @mcp.tool
-# def update_instance_details(
-#     instance_id: str,
-#     ocpus: Annotated[int, "Number of CPUs allocated to the instance"],
-#     memory_in_gbs: Annotated[
-#         int, "Amount of memory in gigabytes (GB) allocated to the instance"
-#     ],
-# ) -> dict:
-#     """Update instance details; this may restart the instance so warn the user"""
-#     compute_client = get_compute_client()
-
-#     shape_config_details = oci.core.models.UpdateInstanceShapeConfigDetails(
-#         ocpus=ocpus, memory_in_gbs=memory_in_gbs
-#     )
-
-#     update_instance_details = oci.core.models.UpdateInstanceDetails(
-#         shape_config=shape_config_details
-#     )
-
-#     try:
-#         compute_client.update_instance(
-#             instance_id=instance_id, update_instance_details=update_instance_details
-#         )
-
-#         get_response = compute_client.get_instance(instance_id)
-
-#         final_response = oci.wait_until(
-#             client=compute_client,
-#             response=get_response,
-#             evaluate_response=lambda x: x.data.shape_config.ocpus == ocpus
-#             and x.data.shape_config.memory_in_gbs == memory_in_gbs,
-#             max_interval_seconds=5,
-#             max_wait_seconds=240,
-#         )
-
-#         return {
-#             "instance_id": instance_id,
-#             "ocpus": final_response.data.shape_config.ocpus,
-#             "memory_in_gbs": final_response.data.shape_config.memory_in_gbs,
-#         }
-#     except oci.exceptions.ServiceError as e:
-#         return {
-#             "error_code": e.code,
-#             "message": e.message,
-#         }
 
 
 def main() -> None:
