@@ -105,6 +105,14 @@
         "run",
         "oracle.oci-api-mcp-server"
       ]
+    },
+    "oracle-oci-object-storage-mcp-server": {
+      "type": "local",
+      "command": "uv",
+      "args": [
+        "run",
+        "oracle.oci-object-storage-mcp-server"
+      ]
     }
   }
 }
