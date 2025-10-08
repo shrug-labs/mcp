@@ -39,6 +39,16 @@ def step_impl_prompt(context, prompt):
     context.response = requests.post(context.url, json=payload, stream=False)
     context.response.raise_for_status()
 
+    # check if all thinking is really done...
+    result = context.response.json()
+    thinking = result["message"]["thinking"]
+    content = result["message"]["content"]
+    print("thinking & content", thinking, content, flush=True)
+    if content is None and thinking is not None:
+        print("Getting the next response...")
+        context.response = requests.post(context.url, json=payload, stream=False)
+        context.response.raise_for_status()
+
 
 @then("the response should contain a list of tools available")
 def step_impl_tools_available(context):

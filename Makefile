@@ -55,4 +55,4 @@ format:
 	uv tool run --from 'tox==4.30.2' tox -e format
 
 e2e-tests: build install
-	cd tests &&	behave e2e && cd ..
+	behave tests/e2e/features && cd ..

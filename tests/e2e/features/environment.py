@@ -70,7 +70,7 @@ def before_all(context):
         context.bridge_proc = subprocess.Popen(
             ["uvx", "ollama-mcp-bridge", "--config", config["MCP_HOST_FILE"]]
         )
-
+        print("Waiting for servers to start...", flush=True)
         time.sleep(
             2 * len(context.mcp_servers or 10)
         )  # Give the server and bridge time to start 2s per server seems to be good.
