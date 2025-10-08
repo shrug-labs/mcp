@@ -113,6 +113,14 @@
         "run",
         "oracle.oci-object-storage-mcp-server"
       ]
+    },
+    "oracle-oci-logging-mcp-server": {
+      "type": "local",
+      "command": "uv",
+      "args": [
+        "run",
+        "oracle.oci-logging-mcp-server"
+      ]
     }
   }
 }

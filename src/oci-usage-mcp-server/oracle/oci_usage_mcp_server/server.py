@@ -37,7 +37,7 @@ def get_usage_client():
 
 
 @mcp.tool
-async def get_summarized_usage(
+def get_summarized_usage(
     tenant_id: Annotated[str, "Tenancy OCID"],
     start_time: Annotated[
         str,
