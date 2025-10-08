@@ -6,6 +6,7 @@ https://oss.oracle.com/licenses/upl.
 
 import os
 from logging import Logger
+from typing import Annotated
 
 import oci
 from fastmcp import FastMCP
@@ -36,64 +37,95 @@ def get_monitoring_client():
 
 
 @mcp.tool
-def get_compute_instance_cpu_utilization(
-    compartment_id: str, instance_id: str, start_time: str, end_time: str
+def get_compute_metrics(
+    compartment_id: str,
+    start_time: str,
+    end_time: str,
+    metricName: Annotated[
+        str,
+        "The metric that the user wants to fetch. Currently we only support:"
+        "CpuUtilization, MemoryUtilization, DiskIopsRead, DiskIopsWritten,"
+        "DiskBytesRead, DiskBytesWritten, NetworksBytesIn,"
+        "NetworksBytesOut, LoadAverage, MemoryAllocationStalls",
+    ],
+    resolution: Annotated[
+        str,
+        "The granularity of the metric. Currently we only support: 1m, 5m, 1h, 1d. Default: 1m.",
+    ] = "1m",
+    aggregation: Annotated[
+        str,
+        "The aggregation for the metric. Currently we only support: "
+        "mean, sum, max, min, count. Default: mean",
+    ] = "mean",
+    instance_id: Annotated[
+        str,
+        "Optional compute instance OCID to filter by " "(maps to resourceId dimension)",
+    ] = None,
+    compartment_id_in_subtree: Annotated[
+        bool,
+        "Whether to include metrics from all subcompartments of the specified compartment",
+    ] = False,
 ) -> list[dict]:
     monitoring_client = get_monitoring_client()
     namespace = "oci_computeagent"
-    query = f'CpuUtilization[1m]{{resourceId=~"{instance_id}"}}.mean()'
+    filter_clause = f'{{resourceId="{instance_id}"}}' if instance_id else ""
+    query = f"{metricName}[{resolution}]{filter_clause}.{aggregation}()"
 
-    datapoints = monitoring_client.summarize_metrics_data(
+    series_list = monitoring_client.summarize_metrics_data(
         compartment_id=compartment_id,
         summarize_metrics_data_details=SummarizeMetricsDataDetails(
             namespace=namespace,
             query=query,
             start_time=start_time,
             end_time=end_time,
-            resolution="1m",
+            resolution=resolution,
         ),
+        compartment_id_in_subtree=compartment_id_in_subtree,
     ).data
 
-    result = []
-    for datapoint in datapoints:
-        for aggregated_datapoint in datapoint.aggregated_datapoints:
-            result.append(
+    result: list[dict] = []
+    for series in series_list:
+        dims = getattr(series, "dimensions", None)
+        points = []
+        for p in getattr(series, "aggregated_datapoints", []) or []:
+            points.append(
                 {
-                    "timestamp": aggregated_datapoint.timestamp,
-                    "value": aggregated_datapoint.value,
+                    "timestamp": getattr(p, "timestamp", None),
+                    "value": getattr(p, "value", None),
                 }
             )
+        result.append(
+            {
+                "dimensions": dims,
+                "datapoints": points,
+            }
+        )
     return result
 
 
 @mcp.tool
-def get_compute_instance_memory_utilization(
-    compartment_id: str, instance_id: str, start_time: str, end_time: str
+def list_alarms(
+    compartment_id: Annotated[
+        str,
+        "The ID of the compartment containing the resources"
+        "monitored by the metric that you are searching for.",
+    ],
 ) -> list[dict]:
     monitoring_client = get_monitoring_client()
-    namespace = "oci_computeagent"
-    query = f'MemoryUtilization[1m]{{resourceId=~"{instance_id}"}}.mean()'
-
-    datapoints = monitoring_client.summarize_metrics_data(
-        compartment_id=compartment_id,
-        summarize_metrics_data_details=SummarizeMetricsDataDetails(
-            namespace=namespace,
-            query=query,
-            start_time=start_time,
-            end_time=end_time,
-            resolution="1m",
-        ),
-    ).data
-
+    response = monitoring_client.list_alarms(compartment_id=compartment_id)
+    alarms = response.data
     result = []
-    for datapoint in datapoints:
-        for aggregated_datapoint in datapoint.aggregated_datapoints:
-            result.append(
-                {
-                    "timestamp": aggregated_datapoint.timestamp,
-                    "value": aggregated_datapoint.value,
-                }
-            )
+    for alarm in alarms:
+        result.append(
+            {
+                "id": alarm.id,
+                "display_name": alarm.display_name,
+                "severity": alarm.severity,
+                "lifecycle_state": alarm.lifecycle_state,
+                "namespace": alarm.namespace,
+                "query": alarm.query,
+            }
+        )
     return result
 
 
