@@ -87,7 +87,7 @@ def get_compute_metrics(
     for series in series_list:
         dims = getattr(series, "dimensions", None)
         points = []
-        for p in getattr(series, "aggregated_datapoints", []) or []:
+        for p in getattr(series, "aggregated_datapoints", []):
             points.append(
                 {
                     "timestamp": getattr(p, "timestamp", None),
