@@ -44,27 +44,54 @@ def get_compute_client():
 
 
 @mcp.tool(description="List Instances in a given compartment")
-async def list_instances(compartment_id: str) -> list[Instance]:
+async def list_instances(
+    compartment_id: Annotated[str, "The OCID of the compartment"],
+    limit: Annotated[
+        int,
+        "The maximum amount of instances to return. If None, there is no limit. "
+        "If the value is not None, then it must be a positive number greater than 0.",
+    ] = None,
+    lifecycle_state: Annotated[
+        str,
+        "The lifecycle state of the instance to filter on. The values can be: "
+        "'MOVING', 'PROVISIONING', 'RUNNING', 'STARTING', 'STOPPING', 'STOPPED', "
+        "'CREATING_IMAGE', 'TERMINATING', 'TERMINATED'",
+    ] = None,
+) -> list[Instance]:
     instances: list[Instance] = []
 
     try:
         client = get_compute_client()
 
-        response: oci.response.Response = client.list_instances(
-            compartment_id=compartment_id
-        )
+        response: oci.response.Response = None
+        has_next_page = True
+        next_page: str = None
 
-        data: list[oci.core.models.Instance] = response.data
-        for d in data:
-            instance = map_instance(d)
-            instances.append(instance)
+        while has_next_page and (limit is None or len(instances) < limit):
+            kwargs = {
+                "compartment_id": compartment_id,
+                "page": next_page,
+                "limit": limit,
+            }
+
+            if lifecycle_state is not None:
+                kwargs["lifecycle_state"] = lifecycle_state
+
+            response = client.list_instances(**kwargs)
+            has_next_page = response.has_next_page
+            next_page = response.next_page if hasattr(response, "next_page") else None
+
+            data: list[oci.core.models.Instance] = response.data
+            for d in data:
+                instance = map_instance(d)
+                instances.append(instance)
 
         logger.info(f"Found {len(instances)} Instances")
         return instances
 
     except Exception as e:
         logger.error(f"Error in list_instances tool: {str(e)}")
-        raise
+        raise e
 
 
 @mcp.tool(description="Get Instance with a given instance OCID")
