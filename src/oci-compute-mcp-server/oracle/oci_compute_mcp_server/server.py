@@ -44,7 +44,7 @@ def get_compute_client():
 
 
 @mcp.tool(description="List Instances in a given compartment")
-async def list_instances(
+def list_instances(
     compartment_id: Annotated[str, "The OCID of the compartment"],
     limit: Annotated[
         int,
@@ -95,7 +95,7 @@ async def list_instances(
 
 
 @mcp.tool(description="Get Instance with a given instance OCID")
-async def get_instance(instance_id: str) -> Instance:
+def get_instance(instance_id: str) -> Instance:
     try:
         client = get_compute_client()
 
@@ -121,7 +121,7 @@ DEFAULT_MEMORY_IN_GBS = 12
     description="Create a new instance. "
     "Another word for instance could be compute, server, or virtual machine"
 )
-async def launch_instance(
+def launch_instance(
     compartment_id: Annotated[
         str,
         "This is the ocid of the compartment to create the instance in."
@@ -199,7 +199,7 @@ async def launch_instance(
 
 
 @mcp.tool
-async def terminate_instance(instance_id: str) -> Response:
+def terminate_instance(instance_id: str) -> Response:
     try:
         client = get_compute_client()
 
@@ -215,7 +215,7 @@ async def terminate_instance(instance_id: str) -> Response:
 @mcp.tool(
     description="Update instance. " "This may restart the instance so warn the user"
 )
-async def update_instance(
+def update_instance(
     instance_id: Annotated[str, "The ocid of the instance to update"],
     ocpus: Annotated[int, "The total number of cores in the instances"] = None,
     memory_in_gbs: Annotated[
@@ -246,7 +246,7 @@ async def update_instance(
 @mcp.tool(
     description="List images in a given compartment, optionally filtered by operating system"  # noqa
 )
-async def list_images(compartment_id: str, operating_system: str = None) -> list[Image]:
+def list_images(compartment_id: str, operating_system: str = None) -> list[Image]:
     images: list[Image] = []
 
     try:
@@ -278,7 +278,7 @@ async def list_images(compartment_id: str, operating_system: str = None) -> list
 
 
 @mcp.tool(description="Get Image with a given image OCID")
-async def get_image(image_id: str) -> Image:
+def get_image(image_id: str) -> Image:
     try:
         client = get_compute_client()
 
@@ -293,7 +293,7 @@ async def get_image(image_id: str) -> Image:
 
 
 @mcp.tool(description="Perform the desired action on a given instance")
-async def instance_action(
+def instance_action(
     instance_id: str,
     action: Annotated[
         str,

@@ -46,7 +46,7 @@ def get_networking_client():
 
 
 @mcp.tool
-async def list_vcns(compartment_id: str) -> list[Vcn]:
+def list_vcns(compartment_id: str) -> list[Vcn]:
     vcns: list[Vcn] = []
 
     try:
@@ -75,7 +75,7 @@ async def list_vcns(compartment_id: str) -> list[Vcn]:
 
 
 @mcp.tool
-async def get_vcn(vcn_id: str) -> Vcn:
+def get_vcn(vcn_id: str) -> Vcn:
     try:
         client = get_networking_client()
 
@@ -90,7 +90,7 @@ async def get_vcn(vcn_id: str) -> Vcn:
 
 
 @mcp.tool
-async def delete_vcn(vcn_id: str) -> Response:
+def delete_vcn(vcn_id: str) -> Response:
     try:
         client = get_networking_client()
 
@@ -104,7 +104,7 @@ async def delete_vcn(vcn_id: str) -> Response:
 
 
 @mcp.tool
-async def create_vcn(compartment_id: str, cidr_block: str, display_name: str) -> Vcn:
+def create_vcn(compartment_id: str, cidr_block: str, display_name: str) -> Vcn:
     try:
         client = get_networking_client()
 
@@ -125,7 +125,7 @@ async def create_vcn(compartment_id: str, cidr_block: str, display_name: str) ->
 
 
 @mcp.tool
-async def list_subnets(compartment_id: str, vcn_id: str = None) -> list[Subnet]:
+def list_subnets(compartment_id: str, vcn_id: str = None) -> list[Subnet]:
     subnets: list[Subnet] = []
 
     try:
@@ -156,7 +156,7 @@ async def list_subnets(compartment_id: str, vcn_id: str = None) -> list[Subnet]:
 
 
 @mcp.tool
-async def get_subnet(subnet_id: str) -> Subnet:
+def get_subnet(subnet_id: str) -> Subnet:
     try:
         client = get_networking_client()
 
@@ -171,7 +171,7 @@ async def get_subnet(subnet_id: str) -> Subnet:
 
 
 @mcp.tool
-async def create_subnet(
+def create_subnet(
     vcn_id: str, compartment_id: str, cidr_block: str, display_name: str
 ) -> Subnet:
     try:
@@ -200,7 +200,7 @@ async def create_subnet(
     "If the VCN ID is not provided, then the list includes the security lists from all "
     "VCNs in the specified compartment.",
 )
-async def list_security_lists(
+def list_security_lists(
     compartment_id: Annotated[str, "Compartment ocid"],
     vcn_id: Annotated[str, "VCN ocid"] = None,
 ) -> list[SecurityList]:
@@ -234,7 +234,7 @@ async def list_security_lists(
 
 
 @mcp.tool(name="get_security_list", description="Gets the security list's information.")
-async def get_security_list(security_list_id: Annotated[str, "security list id"]):
+def get_security_list(security_list_id: Annotated[str, "security list id"]):
     try:
         client = get_networking_client()
 
@@ -254,7 +254,7 @@ async def get_security_list(security_list_id: Annotated[str, "security list id"]
     "a compartmentId, but not both. If you specify a vlanId, all other parameters are "
     "ignored.",
 )
-async def list_network_security_groups(
+def list_network_security_groups(
     compartment_id: Annotated[str, "compartment ocid"],
     vlan_id: Annotated[str, "vlan ocid"] = None,
     vcn_id: Annotated[str, "vcn ocid"] = None,
@@ -294,7 +294,7 @@ async def list_network_security_groups(
 @mcp.tool(
     description="Gets the specified network security group's information.",
 )
-async def get_network_security_group(
+def get_network_security_group(
     network_security_group_id: Annotated[str, "nsg id"],
 ):
     try:
