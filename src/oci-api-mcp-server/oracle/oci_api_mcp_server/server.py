@@ -48,14 +48,14 @@ mcp = FastMCP(
 def get_oci_commands() -> str:
     """Returns helpful information on various OCI services and related commands."""
     logger.info("get_oci_commands resource has been called into action")
-    my_env = os.environ.copy()
-    my_env["OCI_SDK_APPEND_USER_AGENT"] = USER_AGENT
+    env_copy = os.environ.copy()
+    env_copy["OCI_SDK_APPEND_USER_AGENT"] = USER_AGENT
 
     try:
         # Run OCI CLI command using subprocess
         result = subprocess.run(
             ["oci", "--help"],
-            env=my_env,
+            env=env_copy,
             capture_output=True,
             text=True,
             check=True,
@@ -72,6 +72,10 @@ def get_oci_command_help(command: str) -> str:
     Only provide the command after 'oci', do not include the string 'oci'
     in your command.
 
+    Never use the information returned by this tool to tell a user what
+    to do, only use it to help you determine which command to run yourself
+    using the run_oci_command tool.
+
     CLI commands are structured as <service> <resource> <action>; you can get
     help at the service level, resource level or action level, respectively:
         1. compute
@@ -86,14 +90,14 @@ def get_oci_command_help(command: str) -> str:
         3. compute
     """
     logger.info(f"get_oci_command_help called with command: {command}")
-    my_env = os.environ.copy()
-    my_env["OCI_SDK_APPEND_USER_AGENT"] = USER_AGENT
+    env_copy = os.environ.copy()
+    env_copy["OCI_SDK_APPEND_USER_AGENT"] = USER_AGENT
 
     try:
         # Run OCI CLI command using subprocess
         result = subprocess.run(
             ["oci"] + command.split() + ["--help"],
-            env=my_env,
+            env=env_copy,
             capture_output=True,
             text=True,
             check=True,
@@ -113,12 +117,18 @@ def run_oci_command(
     ],
 ) -> dict:
     """Runs an OCI CLI command.
+    This tool allows you to run OCI CLI commands on the user's behalf.
+
     Only provide the command after 'oci', do not include the string 'oci'
     in your command.
 
+    Never tell the user which command to run, only run it for them using
+    this tool.
     """
-    my_env = os.environ.copy()
-    my_env["OCI_SDK_APPEND_USER_AGENT"] = USER_AGENT
+
+    env_copy = os.environ.copy()
+    env_copy["OCI_SDK_APPEND_USER_AGENT"] = USER_AGENT
+
     profile = os.getenv("OCI_CONFIG_PROFILE", oci.config.DEFAULT_PROFILE)
     logger.info(f"run_oci_command called with command: {command} --profile {profile}")
 
@@ -141,13 +151,19 @@ def run_oci_command(
             + [profile]
             + ["--auth", "security_token"]
             + command.split(),
-            env=my_env,
+            env=env_copy,
             capture_output=True,
             text=True,
             check=True,
             shell=False,
         )
-        return json.loads(result.stdout)
+        return (
+            json.loads(result.stdout)
+            if result.stdout
+            else {
+                "error": result.stderr,
+            }
+        )
     except subprocess.CalledProcessError as e:
         return {
             "error": e.stderr,
