@@ -310,3 +310,7 @@ Released under the Universal Permissive License v1.0 as shown at
 ## Third-Party APIs
 
 Developers choosing to distribute a binary implementation of this project are responsible for obtaining and providing all required licenses and copyright notices for the third-party code used in order to ensure compliance with their respective open source licenses.
+
+## Disclaimer
+
+Users are responsible for their local environment and credential safety. Different language model selections may yield different results and performance.
