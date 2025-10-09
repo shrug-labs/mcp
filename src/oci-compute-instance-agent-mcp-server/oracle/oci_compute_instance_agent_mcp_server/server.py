@@ -94,17 +94,16 @@ def run_command(
             max_wait_seconds=240,
         )
 
-        if final_response.data.content:
-            if (
-                final_response.data.content.output_type
-                == InstanceAgentCommandOutputViaTextDetails.OUTPUT_TYPE_TEXT
-            ):
-                return {
-                    "command_id": command_id,
-                    "instance_id": instance_id,
-                    "exit_code": final_response.data.content.exit_code,
-                    "text": final_response.data.content.text,
-                }
+        if final_response.data.content and (
+            final_response.data.content.output_type
+            == InstanceAgentCommandOutputViaTextDetails.OUTPUT_TYPE_TEXT
+        ):
+            return {
+                "command_id": command_id,
+                "instance_id": instance_id,
+                "exit_code": final_response.data.content.exit_code,
+                "text": final_response.data.content.text,
+            }
     except oci.exceptions.ServiceError as e:
         return {
             "error_code": e.code,

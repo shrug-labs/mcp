@@ -55,7 +55,7 @@ class TestMonitoringTools:
             assert "datapoints" in result[0]
             assert len(result[0]["datapoints"]) == 2
             assert result[0]["datapoints"][0]["timestamp"] == "2023-01-01T00:00:00Z"
-            assert result[0]["datapoints"][0]["value"] == 42.0
+            assert result[0]["datapoints"][0]["value"] == pytest.approx(42.0)
 
     @pytest.mark.asyncio
     @patch("oracle.oci_monitoring_mcp_server.server.get_monitoring_client")

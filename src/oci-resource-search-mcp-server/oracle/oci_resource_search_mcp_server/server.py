@@ -145,7 +145,7 @@ def list_resource_types() -> list[str]:
     """Returns a list of all supported OCI resource types"""
     search_client = get_search_client()
     resource_types = search_client.list_resource_types()
-    return list(map(lambda x: x.name, resource_types.data))
+    return [x.name for x in resource_types.data]
 
 
 def main():
