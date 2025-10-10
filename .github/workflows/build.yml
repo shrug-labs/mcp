@@ -22,13 +22,8 @@ jobs:
         with:
           python-version: '3.13'
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v6
-        with:
-          version: "0.8.19"
-
-      - name: Install tomlq
-        run: pip install tomlq
+      - name: Install requirements
+        run: pip install -r requirements-dev.txt
 
       - name: Update __init__.py
         working-directory: src/${{ matrix.directory }}
