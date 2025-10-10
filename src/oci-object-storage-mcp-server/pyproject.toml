@@ -1,0 +1,29 @@
+[project]
+name = "oracle.oci-object-storage-mcp-server"
+version = "0.1.0"
+description = "OCI Object Storage Service MCP server"
+readme = "README.md"
+authors = [
+    { name = "Irfan Ahmed", email = "irfan.ahmed@oracle.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "fastmcp==2.12.2",
+    "oci==2.160.0"
+]
+
+[project.scripts]
+"oracle.oci-object-storage-mcp-server" = "oracle.oci_object_storage_mcp_server.server:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["oracle"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+    "pytest-asyncio>=1.2.0",
+]
